@@ -9,9 +9,9 @@ import lombok.Data;
 public class SignupEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, unique = true)
-    private String id;
+    private Long id;
 
     @Column(name = "first_name", nullable = false)
     private String firstname;

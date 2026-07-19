@@ -188,6 +188,11 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- PDF - Apache PDFBox -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

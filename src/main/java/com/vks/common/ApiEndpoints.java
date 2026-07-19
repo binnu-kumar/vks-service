@@ -8,9 +8,17 @@ public final class ApiEndpoints {
 
     public static final String SIGNUP = "/signup";
     public static final String LOGIN = "/login";
+    public static final String RESET_PASSWORD = "/reset-password";
+    public static final String FORGOT_PASSWORD = "/forgot-password";
+    public static final String VERIFY_OTP = "/verify-otp";
+    public static final String RESET_PASSWORD_WITH_TOKEN = "/reset-password-with-token";
 
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
     public static final String LOGIN_FULL = BASE_AUTH + LOGIN;
+    public static final String RESET_PASSWORD_FULL = BASE_AUTH + RESET_PASSWORD;
+    public static final String FORGOT_PASSWORD_FULL = BASE_AUTH + FORGOT_PASSWORD;
+    public static final String VERIFY_OTP_FULL = BASE_AUTH + VERIFY_OTP;
+    public static final String RESET_PASSWORD_WITH_TOKEN_FULL = BASE_AUTH + RESET_PASSWORD_WITH_TOKEN;
 
     // Actuator
     public static final String ACTUATOR_HEALTH = "/actuator/health";

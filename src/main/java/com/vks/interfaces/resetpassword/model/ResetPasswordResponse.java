@@ -1,4 +1,4 @@
-package com.vks.interfaces.login.model;
+package com.vks.interfaces.resetpassword.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
+public class ResetPasswordResponse {
 
     private boolean success;
     private String message;
-    private String token;
 }

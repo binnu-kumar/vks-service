@@ -25,12 +25,12 @@ public class SignupServiceImpl implements SignupService {
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             log.warn("Signup failed - password mismatch for mobileno: {}", request.getMobileno());
-            return new SignupResponse(false, "Password and confirm password do not match", null);
+            return new SignupResponse(false, "Password and confirm password do not match");
         }
 
         if (signupRepository.existsByMobileno(request.getMobileno())) {
             log.warn("Signup failed - mobile number already registered: {}", request.getMobileno());
-            return new SignupResponse(false, "Mobile number already registered", null);
+            return new SignupResponse(false, "Mobile number already registered");
         }
 
         String hashedPassword = argon2.hash(2, 65536, 1, request.getPassword().toCharArray());
@@ -45,6 +45,6 @@ public class SignupServiceImpl implements SignupService {
         signupRepository.save(user);
 
         log.info("Signup successful for mobileno: {}, id: {}", request.getMobileno(), user.getId());
-        return new SignupResponse(true, "User registered successfully", user.getId());
+        return new SignupResponse(true, "User registered successfully");
     }
 }

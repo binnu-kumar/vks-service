@@ -1,4 +1,4 @@
-package com.vks.interfaces.login.model;
+package com.vks.interfaces.forgotpassword.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
+public class VerifyOtpResponse {
 
     private boolean success;
     private String message;
-    private String token;
+    private String resetToken; // use this token to call reset-password
 }

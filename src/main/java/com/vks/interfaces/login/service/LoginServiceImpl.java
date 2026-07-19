@@ -31,19 +31,19 @@ public class LoginServiceImpl implements LoginService {
 
         if (userOpt.isEmpty()) {
             log.warn("Login failed - user not found for username: {}", request.getUsername());
-            return new LoginResponse(false, "Invalid username or password", null, null);
+            return new LoginResponse(false, "Invalid username or password", null);
         }
 
         SignupEntity user = userOpt.get();
 
         if (!argon2.verify(user.getPassword(), request.getPassword().toCharArray())) {
             log.warn("Login failed - incorrect password for username: {}", request.getUsername());
-            return new LoginResponse(false, "Invalid username or password", null, null);
+            return new LoginResponse(false, "Invalid username or password", null);
         }
 
-        String token = jwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(String.valueOf(user.getId()));
         log.info("Login successful for username: {}, id: {}", request.getUsername(), user.getId());
 
-        return new LoginResponse(true, "Login successful", token, user.getId());
+        return new LoginResponse(true, "Login successful", token);
     }
 }

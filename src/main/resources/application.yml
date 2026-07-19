@@ -29,6 +29,17 @@ spring:
       fail-on-invalid-subtype: true
     mapper:
       accept-case-insensitive-enums: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   servlet:
     multipart:
       max-file-size: 20MB
@@ -42,10 +53,17 @@ server:
   port: 8099
   servlet:
     context-path: /vks-service
+  tomcat:
+    connection-timeout: 5000
 
-# Logging Configuration (Static)
+spring.main.lazy-initialization: false
+
+# Logging Configuration
 logging:
   config: classpath:logback-spring.xml
+  level:
+    org.springframework.security: DEBUG
+    com.vks: DEBUG
 
 # JSON Logging Configuration
 json:

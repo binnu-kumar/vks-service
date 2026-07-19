@@ -11,5 +11,4 @@ public class SignupResponse {
 
     private boolean success;
     private String message;
-    private String id;
 }
