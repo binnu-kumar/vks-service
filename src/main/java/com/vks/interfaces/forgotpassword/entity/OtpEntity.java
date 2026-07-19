@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 public class OtpEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, unique = true)
-    private String id;
+    private Long id;
 
     @Column(name = "username", nullable = false)
     private String username;
