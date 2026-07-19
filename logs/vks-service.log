@@ -1,0 +1,74 @@
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.496 [main] INFO  com.vks.VksServiceMainApplication Starting VksServiceMainApplication using Java 21.0.11 with PID 28024 (D:\Saas\vks\vks-service\target\classes started by BINNU KUMAR in D:\Saas\vks\vks-service)
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.506 [main] INFO  com.vks.VksServiceMainApplication The following 1 profile is active: "local"
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.623 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader Fetching config from server at : http://localhost:8080/config-service
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.623 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader Located environment: name=config-service, profiles=[vks-service], label=default, version=null, state=null
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.624 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader Fetching config from server at : http://localhost:8080/config-service
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:14.625 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader Located environment: name=config-service, profiles=[vks-service], label=local, version=null, state=null
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:16.955 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:17.303 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate Finished Spring Data repository scanning in 323 ms. Found 2 JPA repository interfaces.
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:17.860 [main] INFO  o.s.cloud.context.scope.GenericScope BeanFactory id=c192aff4-8618-3259-bfcd-29d370efcb55
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.178 [main] INFO  c.u.j.c.EnableEncryptablePropertiesBeanFactoryPostProcessor Post-processing PropertySource instances
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.182 [main] INFO  c.u.j.EncryptablePropertySourceConverter Skipping PropertySource configurationProperties [class org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.225 [main] INFO  c.u.j.EncryptablePropertySourceConverter Skipping PropertySource servletConfigInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.225 [main] INFO  c.u.j.EncryptablePropertySourceConverter Skipping PropertySource servletContextInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.228 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.229 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource systemEnvironment [org.springframework.boot.env.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.230 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.231 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource cachedrandom [org.springframework.cloud.util.random.CachedRandomPropertySource] to EncryptablePropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.231 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource configClient [org.springframework.core.env.MapPropertySource] to EncryptableMapPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.231 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource Config resource 'class path resource [application.yml]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.232 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource springCloudClientHostInfo [org.springframework.core.env.MapPropertySource] to EncryptableMapPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.233 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource logCorrelation [org.springframework.boot.actuate.autoconfigure.tracing.LogCorrelationEnvironmentPostProcessor$LogCorrelationPropertySource] to EncryptableEnumerablePropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.233 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource applicationInfo [org.springframework.boot.ApplicationInfoPropertySource] to EncryptableMapPropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.793 [main] INFO  c.u.j.f.DefaultLazyPropertyFilter Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.827 [main] INFO  c.u.j.r.DefaultLazyPropertyResolver Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:18.877 [main] INFO  c.u.j.d.DefaultLazyPropertyDetector Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:19.659 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer Tomcat initialized with port 8099 (http)
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:19.712 [main] INFO  o.a.catalina.core.StandardService Starting service [Tomcat]
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:19.714 [main] INFO  o.a.catalina.core.StandardEngine Starting Servlet engine: [Apache Tomcat/10.1.44]
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:20.079 [main] INFO  o.a.c.c.C.[.[.[/vks-service] Initializing Spring embedded WebApplicationContext
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:20.080 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext Root WebApplicationContext: initialization completed in 5450 ms
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:21.448 [main] INFO  o.h.jpa.internal.util.LogHelper HHH000204: Processing PersistenceUnitInfo [name: default]
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:21.571 [main] INFO  org.hibernate.Version HHH000412: Hibernate ORM core version 6.6.26.Final
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:21.639 [main] INFO  o.h.c.i.RegionFactoryInitiator HHH000026: Second-level cache disabled
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.171 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo No LoadTimeWeaver setup: ignoring JPA class transformer
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.223 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Starting...
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.609 [main] INFO  com.zaxxer.hikari.pool.HikariPool HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2a045e85
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.611 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Start completed.
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.696 [main] WARN  org.hibernate.orm.deprecation HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:22.734 [main] INFO  o.hibernate.orm.connections.pooling HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 17.5
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:24.809 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:25.102 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean Initialized JPA EntityManagerFactory for persistence unit 'default'
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:25.989 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory Hibernate is in classpath; If applicable, HQL parser will be used.
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:27.697 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:28.730 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver Exposing 5 endpoints beneath base path '/actuator'
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:28.850 [main] WARN  o.s.b.a.s.s.UserDetailsServiceAutoConfiguration 
+
+Using generated security password: 9f2f8c1a-6a73-446d-a569-1c0506c3bbfb
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:28.881 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.307 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer Tomcat started on port 8099 (http) with context path '/vks-service'
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.310 [main] INFO  c.u.j.c.RefreshScopeRefreshedEventListener Refreshing cached encryptable property sources on ServletWebServerInitializedEvent
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.310 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source systemProperties refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.311 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source systemEnvironment refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.311 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source random refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.311 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source cachedrandom refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.312 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source configClient refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.312 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source Config resource 'class path resource [application.yml]' via location 'optional:classpath:/' refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.312 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source springCloudClientHostInfo refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.313 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source logCorrelation refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.313 [main] INFO  c.u.j.c.CachingDelegateEncryptablePropertySource Property Source applicationInfo refreshed
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.313 [main] INFO  c.u.j.EncryptablePropertySourceConverter Skipping PropertySource configurationProperties [class org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.313 [main] INFO  c.u.j.EncryptablePropertySourceConverter Skipping PropertySource servletConfigInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.313 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource servletContextInitParams [org.springframework.web.context.support.ServletContextPropertySource] to EncryptableEnumerablePropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.314 [main] INFO  c.u.j.EncryptablePropertySourceConverter Converting PropertySource Management Server [org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextAutoConfiguration$LocalManagementPortPropertySource] to EncryptableEnumerablePropertySourceWrapper
+[Service: vks-service TraceId:  SpanId: ] 2026-07-19 09:55:30.358 [main] INFO  com.vks.VksServiceMainApplication Started VksServiceMainApplication in 18.302 seconds (process running for 33.758)
