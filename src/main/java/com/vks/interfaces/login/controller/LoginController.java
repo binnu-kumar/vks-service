@@ -3,6 +3,7 @@ package com.vks.interfaces.login.controller;
 import com.vks.common.ApiEndpoints;
 import com.vks.interfaces.login.model.LoginRequest;
 import com.vks.interfaces.login.model.LoginResponse;
+import com.vks.interfaces.login.model.RefreshTokenRequest;
 import com.vks.interfaces.login.service.LoginService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,15 @@ public class LoginController {
     @PostMapping(ApiEndpoints.LOGIN)
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = loginService.login(request);
+        if (!response.isSuccess()) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(ApiEndpoints.REFRESH)
+    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        LoginResponse response = loginService.refresh(request);
         if (!response.isSuccess()) {
             return ResponseEntity.badRequest().body(response);
         }

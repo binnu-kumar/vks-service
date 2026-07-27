@@ -5,16 +5,23 @@ public final class ApiEndpoints {
     private ApiEndpoints() {}
 
     public static final String BASE_AUTH = "/api/v1/auth";
+    public static final String BASE_TENANT_ADMIN = "/api/v1";
 
     public static final String SIGNUP = "/signup";
     public static final String LOGIN = "/login";
+    public static final String REFRESH = "/refresh";
     public static final String RESET_PASSWORD = "/reset-password";
     public static final String FORGOT_PASSWORD = "/forgot-password";
     public static final String VERIFY_OTP = "/verify-otp";
     public static final String RESET_PASSWORD_WITH_TOKEN = "/reset-password-with-token";
 
+    public static final String EVENTS = "/events";
+    public static final String EVENTS_BY_ID = "/events/{eventId}";
+    public static final String EVENTS_SEARCH = "/events/search";
+
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
     public static final String LOGIN_FULL = BASE_AUTH + LOGIN;
+    public static final String REFRESH_FULL = BASE_AUTH + REFRESH;
     public static final String RESET_PASSWORD_FULL = BASE_AUTH + RESET_PASSWORD;
     public static final String FORGOT_PASSWORD_FULL = BASE_AUTH + FORGOT_PASSWORD;
     public static final String VERIFY_OTP_FULL = BASE_AUTH + VERIFY_OTP;

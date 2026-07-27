@@ -2,6 +2,7 @@ package com.vks.interfaces.login.service;
 
 import com.vks.interfaces.login.model.LoginRequest;
 import com.vks.interfaces.login.model.LoginResponse;
+import com.vks.interfaces.login.model.RefreshTokenRequest;
 import com.vks.interfaces.login.repository.LoginRepository;
 import com.vks.interfaces.signup.entity.SignupEntity;
 import com.vks.security.JwtUtil;
@@ -31,19 +32,37 @@ public class LoginServiceImpl implements LoginService {
 
         if (userOpt.isEmpty()) {
             log.warn("Login failed - user not found for username: {}", request.getUsername());
-            return new LoginResponse(false, "Invalid username or password", null);
+            return new LoginResponse(false, "Invalid username or password", null, null);
         }
 
         SignupEntity user = userOpt.get();
 
         if (!argon2.verify(user.getPassword(), request.getPassword().toCharArray())) {
             log.warn("Login failed - incorrect password for username: {}", request.getUsername());
-            return new LoginResponse(false, "Invalid username or password", null);
+            return new LoginResponse(false, "Invalid username or password", null, null);
         }
 
-        String token = jwtUtil.generateToken(String.valueOf(user.getId()));
+        String token = jwtUtil.generateToken(request.getUsername());
+        String refreshToken = jwtUtil.generateRefreshToken(request.getUsername());
         log.info("Login successful for username: {}, id: {}", request.getUsername(), user.getId());
 
-        return new LoginResponse(true, "Login successful", token);
+        return new LoginResponse(true, "Login successful", token, refreshToken);
+    }
+
+    @Override
+    public LoginResponse refresh(RefreshTokenRequest request) {
+        String token = request.getRefreshToken();
+
+        if (!jwtUtil.validateToken(token) || !jwtUtil.isRefreshToken(token)) {
+            log.warn("Refresh token failed - invalid or expired refresh token");
+            return new LoginResponse(false, "Invalid or expired refresh token", null, null);
+        }
+
+        String subject = jwtUtil.extractSubject(token);
+        String newAccessToken = jwtUtil.generateToken(subject);
+        String newRefreshToken = jwtUtil.generateRefreshToken(subject);
+        log.info("Token refreshed for subject: {}", subject);
+
+        return new LoginResponse(true, "Token refreshed", newAccessToken, newRefreshToken);
     }
 }

@@ -19,20 +19,36 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration-ms:86400000}")
+    @Value("${jwt.expiration-ms:900000}")
     private long expirationMs;
+
+    @Value("${jwt.refresh-expiration-ms:604800000}")
+    private long refreshExpirationMs;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String subject) {
+        return buildToken(subject, expirationMs, "access");
+    }
+
+    public String generateRefreshToken(String subject) {
+        return buildToken(subject, refreshExpirationMs, "refresh");
+    }
+
+    private String buildToken(String subject, long expiry, String type) {
         return Jwts.builder()
                 .subject(subject)
+                .claim("type", type)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .expiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(parseClaims(token).get("type", String.class));
     }
 
     public String extractSubject(String token) {
