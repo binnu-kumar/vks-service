@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,7 +27,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventResponse getEvent(Long eventId) {
+    public EventResponse getEvent(UUID eventId) {
         log.info("Fetching event id: {}", eventId);
         return eventRepository.findById(eventId)
                 .map(this::toResponse)
@@ -43,12 +44,20 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventResponse updateEvent(Long eventId, EventRequest request) {
+    public EventResponse updateEvent(UUID eventId, EventRequest request) {
         log.info("Updating event id: {}", eventId);
         EventEntity entity = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
         mapToEntity(request, entity);
         return toResponse(eventRepository.save(entity));
+    }
+
+    @Override
+    public void deleteEvent(UUID eventId) {
+        log.info("Deleting event id: {}", eventId);
+        EventEntity entity = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+        eventRepository.delete(entity);
     }
 
     @Override
@@ -68,7 +77,7 @@ public class EventServiceImpl implements EventService {
 
     private EventResponse toResponse(EventEntity entity) {
         return new EventResponse(
-                entity.getId(),
+                entity.getEventId(),
                 entity.getEventName(),
                 entity.getDescription(),
                 entity.getLocation(),

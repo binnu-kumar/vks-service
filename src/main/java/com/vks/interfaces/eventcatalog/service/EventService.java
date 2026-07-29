@@ -5,16 +5,19 @@ import com.vks.interfaces.eventcatalog.model.EventResponse;
 import com.vks.interfaces.eventcatalog.model.EventSearchRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface EventService {
 
     List<EventResponse> listEvents();
 
-    EventResponse getEvent(Long eventId);
+    EventResponse getEvent(UUID eventId);
 
     EventResponse createEvent(EventRequest request, String createdBy);
 
-    EventResponse updateEvent(Long eventId, EventRequest request);
+    EventResponse updateEvent(UUID eventId, EventRequest request);
+
+    void deleteEvent(UUID eventId);
 
     List<EventResponse> searchEvents(EventSearchRequest request);
 }

@@ -18,6 +18,8 @@ public final class ApiEndpoints {
     public static final String EVENTS = "/events";
     public static final String EVENTS_BY_ID = "/events/{eventId}";
     public static final String EVENTS_SEARCH = "/events/search";
+    public static final String SLOTS = "/events/{eventId}/slots";
+    public static final String SLOTS_BY_ID = "/events/{eventId}/slots/{slotId}";
 
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
     public static final String LOGIN_FULL = BASE_AUTH + LOGIN;

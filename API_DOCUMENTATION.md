@@ -18,7 +18,12 @@
 9. [Get Event by ID](#9-get-event-by-id)
 10. [Create Event](#10-create-event)
 11. [Update Event](#11-update-event)
-12. [Search Events](#12-search-events)
+12. [Delete Event](#12-delete-event)
+13. [Search Events](#13-search-events)
+14. [List Event Slots](#14-list-event-slots)
+15. [Create Slot](#15-create-slot)
+16. [Update Slot](#16-update-slot)
+17. [Delete Slot](#17-delete-slot)
 
 ---
 
@@ -641,7 +646,37 @@ Event not found with id: 1
 
 ---
 
-### 12. Search Events
+### 12. Delete Event
+
+| | |
+|---|---|
+| **Method** | `DELETE` |
+| **URL** | `/api/v1/events/{eventId}` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
+2. Looks up the existing event by `eventId` — throws `RuntimeException` if not found.
+3. Deletes the event from the `events` table.
+4. Returns HTTP `204 No Content` on success.
+
+> Deleting an event will cascade to all associated slots.
+
+No request body. Replace `{eventId}` with the numeric event id.
+
+**Success Response `204`:**
+```
+No content
+```
+
+**Failure Response `500`:**
+```json
+Event not found with id: 1
+```
+
+---
+
+### 13. Search Events
 
 | | |
 |---|---|
@@ -708,6 +743,186 @@ Event not found with id: 1
 ```
 
 > Returns empty array `[]` if no events match the filters.
+
+---
+
+## SLOT APIs
+
+**Base Path:** `/api/v1/events/{eventId}/slots`
+> All slot APIs require `Authorization: Bearer <token>` header
+
+---
+
+### 14. List Event Slots
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `/api/v1/events/{eventId}/slots` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
+2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
+3. Fetches all slot records associated with the event using `findByEventEventId(eventId)`.
+4. Maps each `SlotEntity` to `SlotResponse` and returns the list.
+
+> Returns all slots for the specified event in chronological order.
+
+No request body. Replace `{eventId}` with the event UUID.
+
+**Success Response `200`:**
+```json
+[
+  {
+    "slotId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "slotDate": "2025-09-01",
+    "startTime": "09:00:00",
+    "endTime": "10:30:00",
+    "createdAt": "2025-07-15T14:30:00",
+    "updatedAt": "2025-07-15T14:30:00"
+  }
+]
+```
+
+> Returns empty array `[]` if no slots exist for the event.
+
+---
+
+### 15. Create Slot
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `/api/v1/events/{eventId}/slots` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
+2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
+3. Validates the request body — `slotDate`, `startTime`, and `endTime` are required.
+4. Creates a new `SlotEntity` and maps all fields from the request.
+5. Associates the slot with the event.
+6. `createdAt` and `updatedAt` are automatically set via `@PrePersist`.
+7. Saves to the `slots` table and returns the saved entity as response with HTTP `201`.
+
+> Each slot belongs to exactly one event. Replace `{eventId}` with the event UUID.
+
+**Request Body:**
+```json
+{
+  "slotDate": "2025-09-01",
+  "startTime": "09:00:00",
+  "endTime": "10:30:00"
+}
+```
+
+**Request Fields:**
+
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| slotDate | LocalDate | Yes | Format: `yyyy-MM-dd` |
+| startTime | LocalTime | Yes | Format: `HH:mm:ss` |
+| endTime | LocalTime | Yes | Format: `HH:mm:ss` |
+
+**Success Response `201`:**
+```json
+{
+  "slotId": "550e8400-e29b-41d4-a716-446655440000",
+  "eventId": "550e8400-e29b-41d4-a716-446655440001",
+  "slotDate": "2025-09-01",
+  "startTime": "09:00:00",
+  "endTime": "10:30:00",
+  "createdAt": "2025-07-15T14:30:00",
+  "updatedAt": "2025-07-15T14:30:00"
+}
+```
+
+**Failure Response `500`:**
+```json
+Event not found with id: 550e8400-e29b-41d4-a716-446655440001
+```
+
+---
+
+### 16. Update Slot
+
+| | |
+|---|---|
+| **Method** | `PATCH` |
+| **URL** | `/api/v1/events/{eventId}/slots/{slotId}` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
+2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
+3. Looks up the existing slot by `slotId` — throws `RuntimeException` if not found.
+4. Updates all fields on the existing slot entity from the request body.
+5. `updatedAt` is automatically refreshed via `@PreUpdate`.
+6. Saves the updated entity and returns it.
+
+> This is a full update — all fields in the request will overwrite the existing values. `createdAt` is never changed on update.
+
+Replace `{eventId}` and `{slotId}` with their respective UUIDs.
+
+**Request Body:**
+```json
+{
+  "slotDate": "2025-09-02",
+  "startTime": "14:00:00",
+  "endTime": "15:30:00"
+}
+```
+
+**Success Response `200`:**
+```json
+{
+  "slotId": "550e8400-e29b-41d4-a716-446655440000",
+  "eventId": "550e8400-e29b-41d4-a716-446655440001",
+  "slotDate": "2025-09-02",
+  "startTime": "14:00:00",
+  "endTime": "15:30:00",
+  "createdAt": "2025-07-15T14:30:00",
+  "updatedAt": "2025-07-15T15:45:00"
+}
+```
+
+**Failure Response `500`:**
+```json
+Slot not found with id: 550e8400-e29b-41d4-a716-446655440000
+```
+
+---
+
+### 17. Delete Slot
+
+| | |
+|---|---|
+| **Method** | `DELETE` |
+| **URL** | `/api/v1/events/{eventId}/slots/{slotId}` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
+2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
+3. Looks up the existing slot by `slotId` — throws `RuntimeException` if not found.
+4. Deletes the slot from the `slots` table.
+5. Returns HTTP `204 No Content` on success.
+
+> Deleting a slot does not affect the associated event.
+
+No request body. Replace `{eventId}` and `{slotId}` with their respective UUIDs.
+
+**Success Response `204`:**
+```
+No content
+```
+
+**Failure Response `500`:**
+```json
+Slot not found with id: 550e8400-e29b-41d4-a716-446655440000
+```
 
 ---
 

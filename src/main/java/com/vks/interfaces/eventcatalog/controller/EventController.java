@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(ApiEndpoints.BASE_TENANT_ADMIN)
@@ -27,7 +28,7 @@ public class EventController {
     }
 
     @GetMapping(ApiEndpoints.EVENTS_BY_ID)
-    public ResponseEntity<EventResponse> getEvent(@PathVariable Long eventId) {
+    public ResponseEntity<EventResponse> getEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(eventService.getEvent(eventId));
     }
 
@@ -46,8 +47,14 @@ public class EventController {
 
     @PatchMapping(ApiEndpoints.EVENTS_BY_ID)
     public ResponseEntity<EventResponse> updateEvent(
-            @PathVariable Long eventId,
+            @PathVariable UUID eventId,
             @Valid @RequestBody EventRequest request) {
         return ResponseEntity.ok(eventService.updateEvent(eventId, request));
+    }
+
+    @DeleteMapping(ApiEndpoints.EVENTS_BY_ID)
+    public ResponseEntity<Void> deleteEvent(@PathVariable UUID eventId) {
+        eventService.deleteEvent(eventId);
+        return ResponseEntity.noContent().build();
     }
 }
