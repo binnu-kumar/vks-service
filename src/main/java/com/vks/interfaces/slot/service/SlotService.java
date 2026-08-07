@@ -1,7 +1,7 @@
-package com.vks.interfaces.eventcatalog.slot.service;
+package com.vks.interfaces.slot.service;
 
-import com.vks.interfaces.eventcatalog.slot.model.SlotRequest;
-import com.vks.interfaces.eventcatalog.slot.model.SlotResponse;
+import com.vks.interfaces.slot.model.SlotRequest;
+import com.vks.interfaces.slot.model.SlotResponse;
 
 import java.util.List;
 import java.util.UUID;

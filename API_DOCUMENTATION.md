@@ -24,6 +24,9 @@
 15. [Create Slot](#15-create-slot)
 16. [Update Slot](#16-update-slot)
 17. [Delete Slot](#17-delete-slot)
+18. [Create Booking](#18-create-booking)
+19. [List My Bookings](#19-list-my-bookings)
+20. [Cancel Booking](#20-cancel-booking)
 
 ---
 
@@ -222,16 +225,16 @@
 #### How It Works
 1. JWT filter validates the Bearer token in the `Authorization` header — returns `401` if missing or invalid.
 2. Validates that `newPassword` and `confirmPassword` match — returns error if not.
-3. Looks up the user by `mobileno` or `emailid` — returns error if not found.
-4. Hashes the new password using Argon2 (same parameters as signup).
-5. Updates the password in the `signup` table and saves.
+3. Extracts the authenticated username from the JWT subject and uses that account for the password change.
+4. Looks up the authenticated user by `mobileno` or `emailid` — returns error if not found.
+5. Hashes the new password using Argon2 (same parameters as signup).
+6. Updates the password in the `signup` table and saves.
 
 > This API is for users who are already logged in and want to change their password. For forgotten passwords, use the forgot-password flow instead.
 
 **Request Body:**
 ```json
 {
-  "username": "9876543210",
   "newPassword": "NewPass@5678",
   "confirmPassword": "NewPass@5678"
 }
@@ -241,7 +244,6 @@
 
 | Field | Type | Required | Validation |
 |-------|------|----------|------------|
-| username | String | Yes | mobileno or emailid |
 | newPassword | String | Yes | Min 8 characters |
 | confirmPassword | String | Yes | Must match newPassword |
 
@@ -342,10 +344,10 @@
 3. Checks if the OTP has expired — deletes the record and returns error if expired.
 4. Compares the submitted OTP with the stored OTP — returns error if mismatch.
 5. Marks the OTP as `used = true` in the database (single-use enforcement).
-6. Generates a JWT **reset token** with the username as subject (valid for 15 minutes).
+6. Generates a JWT **password-reset token** with the username as subject (valid for 15 minutes).
 7. Returns the reset token — use it in the reset-password-with-token API.
 
-> The OTP is single-use. Once verified, it cannot be used again even if it has not expired yet.
+> The OTP is single-use. Once verified, it cannot be used again even if it has not expired yet. The returned token is only valid for the password reset flow.
 
 **Request Body:**
 ```json
@@ -406,13 +408,13 @@
 
 #### How It Works
 1. Validates that `newPassword` and `confirmPassword` match — returns error if not.
-2. Validates the `resetToken` — checks JWT signature and expiry — returns error if invalid or expired.
+2. Validates the `resetToken` — checks JWT signature, expiry, and token type — returns error if invalid or expired.
 3. Extracts the username (subject) from the reset token.
 4. Looks up the user by the extracted username — returns error if not found.
 5. Hashes the new password using Argon2.
 6. Updates the password in the `signup` table and saves.
 
-> The reset token is the JWT received from verify-otp. It is valid for 15 minutes. No login is required for this API.
+> The reset token is the JWT received from verify-otp. It is valid for 15 minutes, is scoped only to password reset, and no login is required for this API.
 
 **Request Body:**
 ```json
@@ -765,7 +767,7 @@ Event not found with id: 1
 1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
 2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
 3. Fetches all slot records associated with the event using `findByEventEventId(eventId)`.
-4. Maps each `SlotEntity` to `SlotResponse` and returns the list.
+4. Maps each `SlotEntity` to `SlotResponse` and returns the list including slot price.
 
 > Returns all slots for the specified event in chronological order.
 
@@ -780,6 +782,7 @@ No request body. Replace `{eventId}` with the event UUID.
     "slotDate": "2025-09-01",
     "startTime": "09:00:00",
     "endTime": "10:30:00",
+    "price": 499.00,
     "createdAt": "2025-07-15T14:30:00",
     "updatedAt": "2025-07-15T14:30:00"
   }
@@ -789,7 +792,6 @@ No request body. Replace `{eventId}` with the event UUID.
 > Returns empty array `[]` if no slots exist for the event.
 
 ---
-
 ### 15. Create Slot
 
 | | |
@@ -801,7 +803,7 @@ No request body. Replace `{eventId}` with the event UUID.
 #### How It Works
 1. JWT filter validates the Bearer token — returns `401` if missing or invalid.
 2. Validates that the event exists by `eventId` — throws `RuntimeException` if not found.
-3. Validates the request body — `slotDate`, `startTime`, and `endTime` are required.
+3. Validates the request body — `slotDate`, `startTime`, `endTime`, and `price` are required.
 4. Creates a new `SlotEntity` and maps all fields from the request.
 5. Associates the slot with the event.
 6. `createdAt` and `updatedAt` are automatically set via `@PrePersist`.
@@ -814,7 +816,8 @@ No request body. Replace `{eventId}` with the event UUID.
 {
   "slotDate": "2025-09-01",
   "startTime": "09:00:00",
-  "endTime": "10:30:00"
+  "endTime": "10:30:00",
+  "price": 499.00
 }
 ```
 
@@ -825,6 +828,7 @@ No request body. Replace `{eventId}` with the event UUID.
 | slotDate | LocalDate | Yes | Format: `yyyy-MM-dd` |
 | startTime | LocalTime | Yes | Format: `HH:mm:ss` |
 | endTime | LocalTime | Yes | Format: `HH:mm:ss` |
+| price | BigDecimal | Yes | Must be greater than or equal to 0 |
 
 **Success Response `201`:**
 ```json
@@ -834,6 +838,7 @@ No request body. Replace `{eventId}` with the event UUID.
   "slotDate": "2025-09-01",
   "startTime": "09:00:00",
   "endTime": "10:30:00",
+  "price": 499.00,
   "createdAt": "2025-07-15T14:30:00",
   "updatedAt": "2025-07-15T14:30:00"
 }
@@ -871,7 +876,8 @@ Replace `{eventId}` and `{slotId}` with their respective UUIDs.
 {
   "slotDate": "2025-09-02",
   "startTime": "14:00:00",
-  "endTime": "15:30:00"
+  "endTime": "15:30:00",
+  "price": 699.00
 }
 ```
 
@@ -883,6 +889,7 @@ Replace `{eventId}` and `{slotId}` with their respective UUIDs.
   "slotDate": "2025-09-02",
   "startTime": "14:00:00",
   "endTime": "15:30:00",
+  "price": 699.00,
   "createdAt": "2025-07-15T14:30:00",
   "updatedAt": "2025-07-15T15:45:00"
 }
@@ -926,6 +933,134 @@ Slot not found with id: 550e8400-e29b-41d4-a716-446655440000
 
 ---
 
+## BOOKING APIs
+
+**Base Paths:** `/api/v1/events/{eventId}/slots/{slotId}/bookings`, `/api/v1/bookings`
+> All booking APIs require `Authorization: Bearer <token>` header
+
+---
+
+### 18. Create Booking
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `/api/v1/events/{eventId}/slots/{slotId}/bookings` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token and loads the authenticated username from the token subject.
+2. Validates that the event exists by `eventId`.
+3. Validates that the slot exists and belongs to the given event.
+4. Rejects the request if the authenticated user already has an active confirmed booking for the same slot.
+5. Creates a booking row linked to the slot.
+6. Copies the current slot price into `priceAtBooking`.
+7. Saves the booking with `status = CONFIRMED` and returns the created booking with HTTP `201`.
+
+> This API does not require a request body. Replace `{eventId}` and `{slotId}` with their respective UUIDs.
+
+**Success Response `201`:**
+```json
+{
+  "bookingId": "550e8400-e29b-41d4-a716-446655440010",
+  "eventId": "550e8400-e29b-41d4-a716-446655440001",
+  "slotId": "550e8400-e29b-41d4-a716-446655440000",
+  "bookedBy": "9876543210",
+  "slotDate": "2025-09-01",
+  "startTime": "09:00:00",
+  "endTime": "10:30:00",
+  "priceAtBooking": 499.00,
+  "status": "CONFIRMED",
+  "createdAt": "2025-07-15T16:00:00",
+  "updatedAt": "2025-07-15T16:00:00"
+}
+```
+
+**Failure Response `500`:**
+```json
+Booking already exists for this slot and user
+```
+
+---
+
+### 19. List My Bookings
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `/api/v1/bookings/me` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token and loads the authenticated username from the token subject.
+2. Fetches all bookings for that authenticated user ordered by newest first.
+3. Maps each booking to a response that includes event id, slot id, slot timing, snapped booking price, and status.
+
+> Returns both confirmed and cancelled bookings for the current authenticated user.
+
+**Success Response `200`:**
+```json
+[
+  {
+    "bookingId": "550e8400-e29b-41d4-a716-446655440010",
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "slotId": "550e8400-e29b-41d4-a716-446655440000",
+    "bookedBy": "9876543210",
+    "slotDate": "2025-09-01",
+    "startTime": "09:00:00",
+    "endTime": "10:30:00",
+    "priceAtBooking": 499.00,
+    "status": "CONFIRMED",
+    "createdAt": "2025-07-15T16:00:00",
+    "updatedAt": "2025-07-15T16:00:00"
+  }
+]
+```
+
+> Returns empty array `[]` if the authenticated user has no bookings.
+
+---
+
+### 20. Cancel Booking
+
+| | |
+|---|---|
+| **Method** | `PATCH` |
+| **URL** | `/api/v1/bookings/{bookingId}/cancel` |
+| **Auth** | Required |
+
+#### How It Works
+1. JWT filter validates the Bearer token and loads the authenticated username from the token subject.
+2. Looks up the booking by `bookingId` for the authenticated user only.
+3. If the booking is already cancelled, returns the current booking unchanged.
+4. Otherwise updates `status` to `CANCELLED` and saves the booking.
+
+> Users can cancel only their own bookings.
+
+**Success Response `200`:**
+```json
+{
+  "bookingId": "550e8400-e29b-41d4-a716-446655440010",
+  "eventId": "550e8400-e29b-41d4-a716-446655440001",
+  "slotId": "550e8400-e29b-41d4-a716-446655440000",
+  "bookedBy": "9876543210",
+  "slotDate": "2025-09-01",
+  "startTime": "09:00:00",
+  "endTime": "10:30:00",
+  "priceAtBooking": 499.00,
+  "status": "CANCELLED",
+  "createdAt": "2025-07-15T16:00:00",
+  "updatedAt": "2025-07-15T17:15:00"
+}
+```
+
+**Failure Response `500`:**
+```json
+Booking not found with id: 550e8400-e29b-41d4-a716-446655440010
+```
+
+---
+
 ## Forgot Password Flow
 
 ```
@@ -952,7 +1087,7 @@ Step 3 — POST /reset-password-with-token
 | OTP Length | 6 digits |
 | OTP Expiry | 5 minutes |
 | OTP Usage | Single-use — marked used after verification |
-| Token Claim | `type: access` or `type: refresh` to prevent token misuse |
+| Token Claim | `type: access`, `type: refresh`, or `type: password-reset` depending on token purpose |
 
 ---
 

@@ -1,9 +1,10 @@
-package com.vks.interfaces.eventcatalog.slot.model;
+package com.vks.interfaces.slot.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,6 +20,7 @@ public class SlotResponse {
     private LocalDate slotDate;
     private LocalTime startTime;
     private LocalTime endTime;
+    private BigDecimal price;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

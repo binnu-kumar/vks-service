@@ -1,9 +1,9 @@
-package com.vks.interfaces.eventcatalog.slot.controller;
+package com.vks.interfaces.slot.controller;
 
 import com.vks.common.ApiEndpoints;
-import com.vks.interfaces.eventcatalog.slot.model.SlotRequest;
-import com.vks.interfaces.eventcatalog.slot.model.SlotResponse;
-import com.vks.interfaces.eventcatalog.slot.service.SlotService;
+import com.vks.interfaces.slot.model.SlotRequest;
+import com.vks.interfaces.slot.model.SlotResponse;
+import com.vks.interfaces.slot.service.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -37,6 +37,10 @@ public class JwtUtil {
         return buildToken(subject, refreshExpirationMs, "refresh");
     }
 
+    public String generatePasswordResetToken(String subject) {
+        return buildToken(subject, expirationMs, "password-reset");
+    }
+
     private String buildToken(String subject, long expiry, String type) {
         return Jwts.builder()
                 .subject(subject)
@@ -49,6 +53,10 @@ public class JwtUtil {
 
     public boolean isRefreshToken(String token) {
         return "refresh".equals(parseClaims(token).get("type", String.class));
+    }
+
+    public boolean isPasswordResetToken(String token) {
+        return "password-reset".equals(parseClaims(token).get("type", String.class));
     }
 
     public String extractSubject(String token) {

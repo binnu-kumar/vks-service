@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface OtpRepository extends JpaRepository<OtpEntity, String> {
+public interface OtpRepository extends JpaRepository<OtpEntity, Long> {
 
     Optional<OtpEntity> findTopByUsernameAndUsedFalseOrderByExpiryDesc(String username);
 

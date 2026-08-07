@@ -1,9 +1,10 @@
-package com.vks.interfaces.eventcatalog.slot.entity;
+package com.vks.interfaces.slot.entity;
 
 import com.vks.interfaces.eventcatalog.entity.EventEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,6 +32,9 @@ public class SlotEntity {
 
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
+
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

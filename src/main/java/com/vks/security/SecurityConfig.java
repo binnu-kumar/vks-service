@@ -16,6 +16,7 @@ import com.vks.common.ApiEndpoints;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -44,7 +45,7 @@ public class SecurityConfig {
             ApiEndpoints.SIGNUP_FULL,
             ApiEndpoints.LOGIN_FULL,
             ApiEndpoints.REFRESH_FULL,
-            ApiEndpoints.RESET_PASSWORD_FULL,
+            ApiEndpoints.FORGOT_PASSWORD_FULL,
             ApiEndpoints.VERIFY_OTP_FULL,
             ApiEndpoints.RESET_PASSWORD_WITH_TOKEN_FULL,
             ApiEndpoints.ACTUATOR_HEALTH,
@@ -72,7 +73,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(parseAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(false);
@@ -80,5 +81,12 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private List<String> parseAllowedOrigins() {
+        return Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
     }
 }

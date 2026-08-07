@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: vks-service
+  config:
+    import: ""
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false
+
+jwt:
+  secret: vks-super-secret-key-must-be-at-least-32-chars
+  expiration-ms: 900000
+  refresh-expiration-ms: 604800000
+
+logging:
+  level:
+    root: WARN

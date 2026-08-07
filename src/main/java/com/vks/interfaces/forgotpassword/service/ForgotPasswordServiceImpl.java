@@ -101,7 +101,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
         otpEntity.setUsed(true);
         otpRepository.save(otpEntity);
 
-        String resetToken = jwtUtil.generateToken(request.getUsername());
+        String resetToken = jwtUtil.generatePasswordResetToken(request.getUsername());
         log.info("OTP verified successfully for username: {}", request.getUsername());
 
         return new VerifyOtpResponse(true, "OTP verified successfully", resetToken);
@@ -114,7 +114,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             return new ResetPasswordResponse(false, "Passwords do not match");
         }
 
-        if (!jwtUtil.validateToken(request.getResetToken())) {
+        if (!jwtUtil.validateToken(request.getResetToken()) || !jwtUtil.isPasswordResetToken(request.getResetToken())) {
             log.warn("Reset password with token failed - invalid or expired token");
             return new ResetPasswordResponse(false, "Reset token is invalid or expired");
         }

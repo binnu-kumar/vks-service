@@ -1,11 +1,11 @@
-package com.vks.interfaces.eventcatalog.slot.service;
+package com.vks.interfaces.slot.service;
 
 import com.vks.interfaces.eventcatalog.entity.EventEntity;
 import com.vks.interfaces.eventcatalog.repository.EventRepository;
-import com.vks.interfaces.eventcatalog.slot.entity.SlotEntity;
-import com.vks.interfaces.eventcatalog.slot.model.SlotRequest;
-import com.vks.interfaces.eventcatalog.slot.model.SlotResponse;
-import com.vks.interfaces.eventcatalog.slot.repository.SlotRepository;
+import com.vks.interfaces.slot.entity.SlotEntity;
+import com.vks.interfaces.slot.model.SlotRequest;
+import com.vks.interfaces.slot.model.SlotResponse;
+import com.vks.interfaces.slot.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,8 +42,7 @@ public class SlotServiceImpl implements SlotService {
     public SlotResponse updateSlot(UUID eventId, UUID slotId, SlotRequest request) {
         log.info("Updating slot id: {} for event id: {}", slotId, eventId);
         validateEvent(eventId);
-        SlotEntity slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new RuntimeException("Slot not found with id: " + slotId));
+        SlotEntity slot = findSlotForEvent(slotId, eventId);
         mapToEntity(request, slot);
         return toResponse(slotRepository.save(slot));
     }
@@ -52,8 +51,7 @@ public class SlotServiceImpl implements SlotService {
     public void deleteSlot(UUID eventId, UUID slotId) {
         log.info("Deleting slot id: {} for event id: {}", slotId, eventId);
         validateEvent(eventId);
-        SlotEntity slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new RuntimeException("Slot not found with id: " + slotId));
+        SlotEntity slot = findSlotForEvent(slotId, eventId);
         slotRepository.delete(slot);
     }
 
@@ -62,10 +60,17 @@ public class SlotServiceImpl implements SlotService {
                 .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
     }
 
+    private SlotEntity findSlotForEvent(UUID slotId, UUID eventId) {
+        return slotRepository.findBySlotIdAndEventEventId(slotId, eventId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Slot not found with id: " + slotId + " for event id: " + eventId));
+    }
+
     private void mapToEntity(SlotRequest request, SlotEntity slot) {
         slot.setSlotDate(request.getSlotDate());
         slot.setStartTime(request.getStartTime());
         slot.setEndTime(request.getEndTime());
+        slot.setPrice(request.getPrice());
     }
 
     private SlotResponse toResponse(SlotEntity slot) {
@@ -75,6 +80,7 @@ public class SlotServiceImpl implements SlotService {
                 slot.getSlotDate(),
                 slot.getStartTime(),
                 slot.getEndTime(),
+                slot.getPrice(),
                 slot.getCreatedAt(),
                 slot.getUpdatedAt()
         );
