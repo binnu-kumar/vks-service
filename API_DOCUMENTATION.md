@@ -1101,3 +1101,4 @@ Step 3 — POST /reset-password-with-token
 | 401 | Unauthorized — missing or invalid Bearer token |
 | 403 | Forbidden — valid token but access denied |
 | 500 | Internal server error |
+.
