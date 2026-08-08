@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingEntity booking = new BookingEntity();
         booking.setSlot(slot);
-        booking.setBookedBy(currentUser.userId());
+        booking.setBookedBy(currentUser.username());
         booking.setTenantId(currentUser.tenantId());
         booking.setIdempotencyKey(request.getIdempotencyKey());
         booking.setPriceAtBooking(slot.getPrice());

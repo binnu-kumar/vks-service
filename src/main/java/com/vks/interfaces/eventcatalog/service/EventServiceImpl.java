@@ -46,7 +46,7 @@ public class EventServiceImpl implements EventService {
         log.info("Creating event: {} by {}", request.getEventName(), currentUser.userId());
         EventEntity entity = new EventEntity();
         mapToEntity(request, entity);
-        entity.setCreatedBy(currentUser.userId());
+        entity.setCreatedBy(currentUser.username());
         entity.setTenantId(currentUser.tenantId());
         return toResponse(eventRepository.save(entity));
     }
