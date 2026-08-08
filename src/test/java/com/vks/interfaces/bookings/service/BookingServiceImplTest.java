@@ -1,23 +1,28 @@
 package com.vks.interfaces.bookings.service;
 
+import com.vks.common.EmailService;
+import com.vks.common.exception.ConflictException;
 import com.vks.interfaces.bookings.entity.BookingEntity;
 import com.vks.interfaces.bookings.entity.BookingStatus;
+import com.vks.interfaces.bookings.model.BookingRequest;
 import com.vks.interfaces.bookings.model.BookingResponse;
 import com.vks.interfaces.bookings.repository.BookingRepository;
 import com.vks.interfaces.eventcatalog.entity.EventEntity;
 import com.vks.interfaces.eventcatalog.repository.EventRepository;
+import com.vks.interfaces.signup.entity.SignupEntity;
+import com.vks.interfaces.signup.repository.SignupRepository;
 import com.vks.interfaces.slot.entity.SlotEntity;
 import com.vks.interfaces.slot.repository.SlotRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import com.vks.security.AuthenticatedUser;
+import com.vks.security.SecurityContextService;
+import com.vks.security.UserRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,7 +43,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BookingServiceImplTest {
 
-    private static final String USERNAME = "9876543210";
+    private static final AuthenticatedUser CURRENT_USER = new AuthenticatedUser(
+            "42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes());
 
     @Mock
     private BookingRepository bookingRepository;
@@ -49,68 +55,86 @@ class BookingServiceImplTest {
     @Mock
     private SlotRepository slotRepository;
 
+    @Mock
+    private SignupRepository signupRepository;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private SecurityContextService securityContextService;
+
     @InjectMocks
     private BookingServiceImpl bookingService;
 
-    @BeforeEach
-    void setUpAuthentication() {
-        SecurityContextHolder.getContext()
-                .setAuthentication(new UsernamePasswordAuthenticationToken(USERNAME, null));
-    }
-
-    @AfterEach
-    void clearAuthentication() {
-        SecurityContextHolder.clearContext();
-    }
-
     @Test
-    void createBookingSavesConfirmedBookingWithSnapshotPrice() {
+    void createBookingSavesPendingBookingWithSnapshotPriceAndExpiry() {
+        ReflectionTestUtils.setField(bookingService, "holdDurationMinutes", 15L);
         UUID eventId = UUID.randomUUID();
         UUID slotId = UUID.randomUUID();
         EventEntity event = createEvent(eventId);
         SlotEntity slot = createSlot(event, slotId);
-        BookingEntity savedBooking = createBooking(slot, BookingStatus.CONFIRMED);
+        BookingRequest request = bookingRequest(eventId, slotId);
+        BookingEntity savedBooking = createBooking(slot, BookingStatus.PAYMENT_PENDING);
+        savedBooking.setExpiresAt(LocalDateTime.now().plusMinutes(15));
 
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        when(slotRepository.findBySlotIdAndEventEventId(slotId, eventId)).thenReturn(Optional.of(slot));
-        when(bookingRepository.existsBySlotSlotIdAndBookedByAndStatus(slotId, USERNAME, BookingStatus.CONFIRMED))
-                .thenReturn(false);
+        when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
+        when(eventRepository.findByEventIdAndTenantId(eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(event));
+        when(slotRepository.findBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
+        when(bookingRepository.findByTenantIdAndBookedByAndIdempotencyKey(CURRENT_USER.tenantId(), CURRENT_USER.userId(), request.getIdempotencyKey()))
+                .thenReturn(Optional.empty());
+        when(bookingRepository.existsBySlotSlotIdAndBookedByAndTenantIdAndStatusIn(slotId, CURRENT_USER.userId(), CURRENT_USER.tenantId(),
+                List.of(BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING, BookingStatus.CONFIRMED))).thenReturn(false);
+        when(bookingRepository.findBySlotSlotIdAndTenantIdAndStatusIn(slotId, CURRENT_USER.tenantId(),
+                List.of(BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING, BookingStatus.CONFIRMED))).thenReturn(List.of());
         when(bookingRepository.save(any(BookingEntity.class))).thenReturn(savedBooking);
 
-        BookingResponse response = bookingService.createBooking(eventId, slotId);
+        SignupEntity user = new SignupEntity();
+        user.setEmailid("john@example.com");
+        when(signupRepository.findById(42L)).thenReturn(Optional.of(user));
+
+        BookingResponse response = bookingService.createBooking(request);
 
         ArgumentCaptor<BookingEntity> bookingCaptor = ArgumentCaptor.forClass(BookingEntity.class);
         verify(bookingRepository).save(bookingCaptor.capture());
         BookingEntity persisted = bookingCaptor.getValue();
 
         assertEquals(slot, persisted.getSlot());
-        assertEquals(USERNAME, persisted.getBookedBy());
+        assertEquals(CURRENT_USER.userId(), persisted.getBookedBy());
+        assertEquals(CURRENT_USER.tenantId(), persisted.getTenantId());
         assertEquals(slot.getPrice(), persisted.getPriceAtBooking());
-        assertEquals(BookingStatus.CONFIRMED, persisted.getStatus());
-
+        assertEquals(BookingStatus.PAYMENT_PENDING, persisted.getStatus());
+        assertNotNull(persisted.getExpiresAt());
         assertEquals(savedBooking.getBookingId(), response.getBookingId());
-        assertEquals(eventId, response.getEventId());
-        assertEquals(slotId, response.getSlotId());
-        assertEquals(slot.getPrice(), response.getPriceAtBooking());
-        assertEquals(BookingStatus.CONFIRMED, response.getStatus());
+        assertEquals(BookingStatus.PAYMENT_PENDING, response.getStatus());
+        verify(emailService).sendBookingPendingEmail("john@example.com", savedBooking.getBookingId().toString(), event.getEventName());
     }
 
     @Test
-    void createBookingThrowsWhenConfirmedBookingAlreadyExists() {
+    void createBookingThrowsWhenSlotCapacityReached() {
+        ReflectionTestUtils.setField(bookingService, "holdDurationMinutes", 15L);
         UUID eventId = UUID.randomUUID();
         UUID slotId = UUID.randomUUID();
         EventEntity event = createEvent(eventId);
         SlotEntity slot = createSlot(event, slotId);
+        slot.setCapacity(1);
+        BookingRequest request = bookingRequest(eventId, slotId);
+        BookingEntity existing = createBooking(slot, BookingStatus.PAYMENT_PENDING);
+        existing.setExpiresAt(LocalDateTime.now().plusMinutes(5));
 
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        when(slotRepository.findBySlotIdAndEventEventId(slotId, eventId)).thenReturn(Optional.of(slot));
-        when(bookingRepository.existsBySlotSlotIdAndBookedByAndStatus(slotId, USERNAME, BookingStatus.CONFIRMED))
-                .thenReturn(true);
+        when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
+        when(eventRepository.findByEventIdAndTenantId(eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(event));
+        when(slotRepository.findBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
+        when(bookingRepository.findByTenantIdAndBookedByAndIdempotencyKey(CURRENT_USER.tenantId(), CURRENT_USER.userId(), request.getIdempotencyKey()))
+                .thenReturn(Optional.empty());
+        when(bookingRepository.existsBySlotSlotIdAndBookedByAndTenantIdAndStatusIn(slotId, CURRENT_USER.userId(), CURRENT_USER.tenantId(),
+                List.of(BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING, BookingStatus.CONFIRMED))).thenReturn(false);
+        when(bookingRepository.findBySlotSlotIdAndTenantIdAndStatusIn(slotId, CURRENT_USER.tenantId(),
+                List.of(BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING, BookingStatus.CONFIRMED))).thenReturn(List.of(existing));
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> bookingService.createBooking(eventId, slotId));
+        ConflictException exception = assertThrows(ConflictException.class, () -> bookingService.createBooking(request));
 
-        assertEquals("Booking already exists for this slot and user", exception.getMessage());
+        assertEquals("Slot capacity has been reached", exception.getMessage());
         verify(bookingRepository, never()).save(any(BookingEntity.class));
     }
 
@@ -120,65 +144,62 @@ class BookingServiceImplTest {
         UUID slotId = UUID.randomUUID();
         EventEntity event = createEvent(eventId);
         SlotEntity slot = createSlot(event, slotId);
-        BookingEntity booking = createBooking(slot, BookingStatus.CONFIRMED);
+        BookingEntity booking = createBooking(slot, BookingStatus.PAYMENT_PENDING);
 
-        when(bookingRepository.findByBookedByOrderByCreatedAtDesc(USERNAME)).thenReturn(List.of(booking));
+        when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
+        when(bookingRepository.findByBookedByAndTenantIdOrderByCreatedAtDesc(CURRENT_USER.userId(), CURRENT_USER.tenantId()))
+                .thenReturn(List.of(booking));
 
         List<BookingResponse> responses = bookingService.listMyBookings();
 
         assertEquals(1, responses.size());
         BookingResponse response = responses.getFirst();
         assertEquals(booking.getBookingId(), response.getBookingId());
-        assertEquals(USERNAME, response.getBookedBy());
+        assertEquals(CURRENT_USER.userId(), response.getBookedBy());
         assertEquals(eventId, response.getEventId());
         assertEquals(slotId, response.getSlotId());
         assertEquals(slot.getPrice(), response.getPriceAtBooking());
-        assertEquals(BookingStatus.CONFIRMED, response.getStatus());
     }
 
     @Test
-    void cancelBookingMarksConfirmedBookingAsCancelled() {
+    void cancelBookingMarksBookingAsCancelledAndSendsNotification() {
         UUID bookingId = UUID.randomUUID();
         UUID eventId = UUID.randomUUID();
         UUID slotId = UUID.randomUUID();
         EventEntity event = createEvent(eventId);
         SlotEntity slot = createSlot(event, slotId);
-        BookingEntity booking = createBooking(slot, BookingStatus.CONFIRMED);
+        BookingEntity booking = createBooking(slot, BookingStatus.PAYMENT_PENDING);
         booking.setBookingId(bookingId);
 
-        when(bookingRepository.findByBookingIdAndBookedBy(bookingId, USERNAME)).thenReturn(Optional.of(booking));
+        SignupEntity user = new SignupEntity();
+        user.setEmailid("john@example.com");
+
+        when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
+        when(bookingRepository.findByBookingIdAndBookedByAndTenantId(bookingId, CURRENT_USER.userId(), CURRENT_USER.tenantId()))
+                .thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(BookingEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(signupRepository.findById(42L)).thenReturn(Optional.of(user));
 
         BookingResponse response = bookingService.cancelBooking(bookingId);
 
         assertEquals(BookingStatus.CANCELLED, booking.getStatus());
         assertEquals(BookingStatus.CANCELLED, response.getStatus());
-        verify(bookingRepository).save(booking);
+        verify(emailService).sendBookingCancelledEmail("john@example.com", bookingId.toString(), event.getEventName());
     }
 
-    @Test
-    void cancelBookingReturnsExistingBookingWhenAlreadyCancelled() {
-        UUID bookingId = UUID.randomUUID();
-        UUID eventId = UUID.randomUUID();
-        UUID slotId = UUID.randomUUID();
-        EventEntity event = createEvent(eventId);
-        SlotEntity slot = createSlot(event, slotId);
-        BookingEntity booking = createBooking(slot, BookingStatus.CANCELLED);
-        booking.setBookingId(bookingId);
-
-        when(bookingRepository.findByBookingIdAndBookedBy(bookingId, USERNAME)).thenReturn(Optional.of(booking));
-
-        BookingResponse response = bookingService.cancelBooking(bookingId);
-
-        assertEquals(BookingStatus.CANCELLED, response.getStatus());
-        assertNotNull(response.getUpdatedAt());
-        verify(bookingRepository, never()).save(any(BookingEntity.class));
+    private BookingRequest bookingRequest(UUID eventId, UUID slotId) {
+        BookingRequest request = new BookingRequest();
+        request.setEventId(eventId);
+        request.setSlotId(slotId);
+        request.setIdempotencyKey("key-1");
+        return request;
     }
 
     private EventEntity createEvent(UUID eventId) {
         EventEntity event = new EventEntity();
         event.setEventId(eventId);
         event.setEventName("Tech Summit");
+        event.setTenantId(CURRENT_USER.tenantId());
         return event;
     }
 
@@ -190,6 +211,7 @@ class BookingServiceImplTest {
         slot.setStartTime(LocalTime.of(9, 0));
         slot.setEndTime(LocalTime.of(10, 30));
         slot.setPrice(new BigDecimal("499.00"));
+        slot.setCapacity(5);
         return slot;
     }
 
@@ -197,7 +219,9 @@ class BookingServiceImplTest {
         BookingEntity booking = new BookingEntity();
         booking.setBookingId(UUID.randomUUID());
         booking.setSlot(slot);
-        booking.setBookedBy(USERNAME);
+        booking.setBookedBy(CURRENT_USER.userId());
+        booking.setTenantId(CURRENT_USER.tenantId());
+        booking.setIdempotencyKey("key-1");
         booking.setPriceAtBooking(slot.getPrice());
         booking.setStatus(status);
         booking.setCreatedAt(LocalDateTime.of(2025, 7, 15, 16, 0));

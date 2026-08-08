@@ -43,6 +43,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             ApiEndpoints.SIGNUP_FULL,
+            ApiEndpoints.ADMIN_SIGNUP_FULL,
             ApiEndpoints.LOGIN_FULL,
             ApiEndpoints.REFRESH_FULL,
             ApiEndpoints.FORGOT_PASSWORD_FULL,
@@ -63,6 +64,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_URLS).permitAll()
+                .requestMatchers(ApiEndpoints.BASE_TENANT_ADMIN + "/**").hasRole(UserRole.TENANT_ADMIN.name())
+                .requestMatchers(ApiEndpoints.BASE_CUSTOMER + "/**").hasRole(UserRole.CUSTOMER.name())
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

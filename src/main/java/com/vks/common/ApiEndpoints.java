@@ -5,9 +5,11 @@ public final class ApiEndpoints {
     private ApiEndpoints() {}
 
     public static final String BASE_AUTH = "/api/v1/auth";
-    public static final String BASE_TENANT_ADMIN = "/api/v1";
+    public static final String BASE_TENANT_ADMIN = "/api/v1/tenant-admin";
+    public static final String BASE_CUSTOMER = "/api/v1/customer";
 
     public static final String SIGNUP = "/signup";
+    public static final String ADMIN_SIGNUP = "/tenant-admin/signup";
     public static final String LOGIN = "/login";
     public static final String REFRESH = "/refresh";
     public static final String RESET_PASSWORD = "/reset-password";
@@ -20,11 +22,12 @@ public final class ApiEndpoints {
     public static final String EVENTS_SEARCH = "/events/search";
     public static final String SLOTS = "/events/{eventId}/slots";
     public static final String SLOTS_BY_ID = "/events/{eventId}/slots/{slotId}";
-    public static final String BOOKINGS = "/events/{eventId}/slots/{slotId}/bookings";
-    public static final String MY_BOOKINGS = "/bookings/me";
+    public static final String BOOKINGS = "/bookings";
+    public static final String MY_BOOKINGS = "/bookings";
     public static final String BOOKINGS_CANCEL = "/bookings/{bookingId}/cancel";
 
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
+    public static final String ADMIN_SIGNUP_FULL = BASE_AUTH + ADMIN_SIGNUP;
     public static final String LOGIN_FULL = BASE_AUTH + LOGIN;
     public static final String REFRESH_FULL = BASE_AUTH + REFRESH;
     public static final String RESET_PASSWORD_FULL = BASE_AUTH + RESET_PASSWORD;

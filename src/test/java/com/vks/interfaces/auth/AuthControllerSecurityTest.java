@@ -7,10 +7,13 @@ import com.vks.interfaces.login.model.LoginResponse;
 import com.vks.interfaces.login.service.LoginService;
 import com.vks.interfaces.resetpassword.model.ResetPasswordResponse;
 import com.vks.interfaces.resetpassword.service.ResetPasswordService;
+import com.vks.interfaces.signup.model.AdminSignupRequest;
 import com.vks.interfaces.signup.model.SignupResponse;
 import com.vks.interfaces.signup.service.SignupService;
+import com.vks.security.AuthenticatedUser;
 import com.vks.security.JwtUtil;
 import com.vks.security.SecurityConfig;
+import com.vks.security.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -101,13 +104,25 @@ class AuthControllerSecurityTest {
     @Test
     void loginIsPublicAndReturnsOk() throws Exception {
         when(loginService.login(any()))
-                .thenReturn(new LoginResponse(true, "Login successful", "access", "refresh"));
+                                .thenReturn(new LoginResponse(true, "Login successful", "access", "refresh", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"9876543210\",\"password\":\"Pass@1234\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("access"));
+    }
+
+    @Test
+    void adminSignupIsPublicAndReturnsOk() throws Exception {
+        when(signupService.adminSignup(any(AdminSignupRequest.class)))
+                .thenReturn(new SignupResponse(true, "Tenant admin registered successfully"));
+
+        mockMvc.perform(post("/api/v1/auth/tenant-admin/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AdminSignupPayload())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
@@ -121,7 +136,9 @@ class AuthControllerSecurityTest {
     @Test
     void resetPasswordAllowsAuthenticatedRequest() throws Exception {
         when(jwtUtil.validateToken("valid-token")).thenReturn(true);
-        when(jwtUtil.extractSubject("valid-token")).thenReturn("9876543210");
+        when(jwtUtil.isAccessToken("valid-token")).thenReturn(true);
+        when(jwtUtil.extractAuthenticatedUser("valid-token")).thenReturn(
+                new AuthenticatedUser("42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
         when(resetPasswordService.resetPassword(any()))
                 .thenReturn(new ResetPasswordResponse(true, "Password reset successful"));
 
@@ -136,9 +153,14 @@ class AuthControllerSecurityTest {
     static class SignupPayload {
         public String firstname = "John";
         public String lastname = "Doe";
+                public String tenantId = "tenant-123";
         public String mobileno = "9876543210";
         public String emailid = "john@example.com";
         public String password = "Pass@1234";
         public String confirmPassword = "Pass@1234";
     }
+
+        static class AdminSignupPayload extends SignupPayload {
+                public String onboardingSecret = "admin-bootstrap-secret";
+        }
 }

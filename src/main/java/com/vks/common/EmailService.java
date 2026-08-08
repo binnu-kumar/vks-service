@@ -31,4 +31,34 @@ public class EmailService {
             throw new RuntimeException("Failed to send OTP email");
         }
     }
+
+    public void sendBookingPendingEmail(String toEmail, String bookingId, String eventName) {
+        sendEmail(toEmail, "Your booking is reserved",
+                "Your booking " + bookingId + " for " + eventName + " is reserved and currently awaiting payment confirmation.");
+    }
+
+    public void sendBookingCancelledEmail(String toEmail, String bookingId, String eventName) {
+        sendEmail(toEmail, "Your booking has been cancelled",
+                "Your booking " + bookingId + " for " + eventName + " has been cancelled.");
+    }
+
+    public void sendAdminOnboardingEmail(String toEmail, String tenantId) {
+        sendEmail(toEmail, "Tenant admin onboarding successful",
+                "You have been onboarded as a tenant admin for tenant " + tenantId + ".");
+    }
+
+    private void sendEmail(String toEmail, String subject, String text) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject(subject);
+            message.setText(text);
+            mailSender.send(message);
+            log.info("Email sent to: {} with subject: {}", toEmail, subject);
+        } catch (Exception e) {
+            log.error("Failed to send email to: {}, error: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send email");
+        }
+    }
 }

@@ -25,12 +25,21 @@ public class BookingEntity {
     @Column(name = "booked_by", nullable = false)
     private String bookedBy;
 
+    @Column(name = "tenant_id", nullable = false)
+    private String tenantId;
+
+    @Column(name = "idempotency_key", nullable = false)
+    private String idempotencyKey;
+
     @Column(name = "price_at_booking", nullable = false, precision = 10, scale = 2)
     private BigDecimal priceAtBooking;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private BookingStatus status;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

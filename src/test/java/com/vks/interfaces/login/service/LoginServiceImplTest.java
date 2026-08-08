@@ -5,7 +5,9 @@ import com.vks.interfaces.login.model.LoginResponse;
 import com.vks.interfaces.login.model.RefreshTokenRequest;
 import com.vks.interfaces.login.repository.LoginRepository;
 import com.vks.interfaces.signup.entity.SignupEntity;
+import com.vks.security.AuthenticatedUser;
 import com.vks.security.JwtUtil;
+import com.vks.security.UserRole;
 import de.mkammerer.argon2.Argon2Factory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,8 +64,8 @@ class LoginServiceImplTest {
         LoginRequest request = loginRequest();
         SignupEntity user = userWithPassword(request.getPassword());
         when(loginRepository.findByMobilenoOrEmailid(request.getUsername())).thenReturn(Optional.of(user));
-        when(jwtUtil.generateToken(request.getUsername())).thenReturn("access-token");
-        when(jwtUtil.generateRefreshToken(request.getUsername())).thenReturn("refresh-token");
+        when(jwtUtil.generateToken(any(AuthenticatedUser.class))).thenReturn("access-token");
+        when(jwtUtil.generateRefreshToken(any(AuthenticatedUser.class))).thenReturn("refresh-token");
 
         LoginResponse response = loginService.login(request);
 
@@ -70,6 +73,8 @@ class LoginServiceImplTest {
         assertEquals("Login successful", response.getMessage());
         assertEquals("access-token", response.getToken());
         assertEquals("refresh-token", response.getRefreshToken());
+        assertEquals("tenant-123", response.getTenantId());
+        assertEquals(UserRole.CUSTOMER, response.getRole());
     }
 
     @Test
@@ -88,11 +93,13 @@ class LoginServiceImplTest {
     void refreshReturnsNewTokensWhenRefreshTokenValid() {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken("refresh-token");
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(
+            "1", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes());
         when(jwtUtil.validateToken(request.getRefreshToken())).thenReturn(true);
         when(jwtUtil.isRefreshToken(request.getRefreshToken())).thenReturn(true);
-        when(jwtUtil.extractSubject(request.getRefreshToken())).thenReturn("9876543210");
-        when(jwtUtil.generateToken("9876543210")).thenReturn("new-access");
-        when(jwtUtil.generateRefreshToken("9876543210")).thenReturn("new-refresh");
+        when(jwtUtil.extractAuthenticatedUser(request.getRefreshToken())).thenReturn(authenticatedUser);
+        when(jwtUtil.generateToken(authenticatedUser)).thenReturn("new-access");
+        when(jwtUtil.generateRefreshToken(authenticatedUser)).thenReturn("new-refresh");
 
         LoginResponse response = loginService.refresh(request);
 
@@ -100,7 +107,9 @@ class LoginServiceImplTest {
         assertEquals("Token refreshed", response.getMessage());
         assertEquals("new-access", response.getToken());
         assertEquals("new-refresh", response.getRefreshToken());
-        verify(jwtUtil).extractSubject(request.getRefreshToken());
+        assertEquals("tenant-123", response.getTenantId());
+        assertEquals(UserRole.CUSTOMER, response.getRole());
+        verify(jwtUtil).extractAuthenticatedUser(request.getRefreshToken());
     }
 
     private LoginRequest loginRequest() {
@@ -114,6 +123,8 @@ class LoginServiceImplTest {
         SignupEntity user = new SignupEntity();
         user.setId(1L);
         user.setMobileno("9876543210");
+        user.setTenantId("tenant-123");
+        user.setRole(UserRole.CUSTOMER);
         user.setPassword(Argon2Factory.create().hash(2, 65536, 1, rawPassword.toCharArray()));
         return user;
     }

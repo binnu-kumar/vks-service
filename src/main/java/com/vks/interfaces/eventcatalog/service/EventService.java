@@ -13,7 +13,7 @@ public interface EventService {
 
     EventResponse getEvent(UUID eventId);
 
-    EventResponse createEvent(EventRequest request, String createdBy);
+    EventResponse createEvent(EventRequest request);
 
     EventResponse updateEvent(UUID eventId, EventRequest request);
 

@@ -22,6 +22,9 @@ public class SignupRequest {
     @Email(message = "Invalid email format")
     private String emailid;
 
+    @NotBlank(message = "Tenant id is required")
+    private String tenantId;
+
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;

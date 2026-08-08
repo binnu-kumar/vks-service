@@ -21,6 +21,7 @@ public class SlotResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private BigDecimal price;
+    private Integer capacity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

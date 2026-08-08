@@ -9,18 +9,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtUtilTest {
 
+    private static final AuthenticatedUser USER = new AuthenticatedUser(
+            "user-1", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes());
+
     @Test
     void generatesAndValidatesAccessRefreshAndResetTokens() {
         JwtUtil jwtUtil = configuredJwtUtil();
 
-        String accessToken = jwtUtil.generateToken("user-1");
-        String refreshToken = jwtUtil.generateRefreshToken("user-1");
+        String accessToken = jwtUtil.generateToken(USER);
+        String refreshToken = jwtUtil.generateRefreshToken(USER);
         String resetToken = jwtUtil.generatePasswordResetToken("user-1");
 
         assertTrue(jwtUtil.validateToken(accessToken));
         assertTrue(jwtUtil.validateToken(refreshToken));
         assertTrue(jwtUtil.validateToken(resetToken));
         assertEquals("user-1", jwtUtil.extractSubject(accessToken));
+        assertEquals("tenant-123", jwtUtil.extractAuthenticatedUser(accessToken).tenantId());
         assertTrue(jwtUtil.isRefreshToken(refreshToken));
         assertFalse(jwtUtil.isRefreshToken(accessToken));
         assertTrue(jwtUtil.isPasswordResetToken(resetToken));
@@ -30,7 +34,7 @@ class JwtUtilTest {
     @Test
     void validateTokenReturnsFalseForTamperedToken() {
         JwtUtil jwtUtil = configuredJwtUtil();
-        String token = jwtUtil.generateToken("user-1") + "tampered";
+        String token = jwtUtil.generateToken(USER) + "tampered";
 
         assertFalse(jwtUtil.validateToken(token));
     }

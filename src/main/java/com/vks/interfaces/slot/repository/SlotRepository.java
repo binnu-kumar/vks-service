@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface SlotRepository extends JpaRepository<SlotEntity, UUID> {
 
-    List<SlotEntity> findByEventEventId(UUID eventId);
+    List<SlotEntity> findByEventEventIdAndEventTenantId(UUID eventId, String tenantId);
 
-    Optional<SlotEntity> findBySlotIdAndEventEventId(UUID slotId, UUID eventId);
+    Optional<SlotEntity> findBySlotIdAndEventEventIdAndEventTenantId(UUID slotId, UUID eventId, String tenantId);
 }

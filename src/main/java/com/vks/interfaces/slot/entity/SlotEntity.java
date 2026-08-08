@@ -36,6 +36,9 @@ public class SlotEntity {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "capacity", nullable = false)
+    private Integer capacity;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

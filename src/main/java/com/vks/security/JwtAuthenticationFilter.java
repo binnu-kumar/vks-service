@@ -12,8 +12,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -28,14 +26,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("Incoming request: {} {}", request.getMethod(), request.getRequestURI());
         log.debug("Bearer token present: {}", StringUtils.hasText(token));
 
-        if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-            String subject = jwtUtil.extractSubject(token);
+        if (StringUtils.hasText(token) && jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
+            AuthenticatedUser user = jwtUtil.extractAuthenticatedUser(token);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(subject, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(user, null, user.authorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("Authenticated user: {}", subject);
+            log.info("Authenticated user: {} in tenant: {} with role: {}", user.userId(), user.tenantId(), user.role());
         } else {
-            log.warn("No valid JWT token found for request: {}", request.getRequestURI());
+            log.debug("No valid access JWT token found for request: {}", request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);

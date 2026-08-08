@@ -12,9 +12,11 @@ public class EventSpecification {
 
     private EventSpecification() {}
 
-    public static Specification<EventEntity> build(EventSearchRequest request) {
+    public static Specification<EventEntity> build(EventSearchRequest request, String tenantId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("tenantId"), tenantId));
 
             if (request.getEventName() != null && !request.getEventName().isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("eventName")),

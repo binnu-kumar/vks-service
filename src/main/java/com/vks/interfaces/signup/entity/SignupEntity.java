@@ -1,5 +1,6 @@
 package com.vks.interfaces.signup.entity;
 
+import com.vks.security.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,4 +28,11 @@ public class SignupEntity {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @Column(name = "tenant_id", nullable = false)
+    private String tenantId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role;
 }

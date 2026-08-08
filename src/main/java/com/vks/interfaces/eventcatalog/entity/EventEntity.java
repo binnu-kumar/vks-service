@@ -34,6 +34,9 @@ public class EventEntity {
     @Column(name = "created_by")
     private String createdBy;
 
+    @Column(name = "tenant_id", nullable = false)
+    private String tenantId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

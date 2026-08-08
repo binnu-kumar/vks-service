@@ -2,14 +2,17 @@ package com.vks.interfaces.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vks.interfaces.bookings.entity.BookingStatus;
+import com.vks.interfaces.bookings.model.BookingRequest;
 import com.vks.interfaces.bookings.model.BookingResponse;
 import com.vks.interfaces.bookings.service.BookingService;
 import com.vks.interfaces.eventcatalog.model.EventResponse;
 import com.vks.interfaces.eventcatalog.service.EventService;
 import com.vks.interfaces.slot.model.SlotResponse;
 import com.vks.interfaces.slot.service.SlotService;
+import com.vks.security.AuthenticatedUser;
 import com.vks.security.JwtUtil;
 import com.vks.security.SecurityConfig;
+import com.vks.security.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -38,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = {
         com.vks.interfaces.eventcatalog.controller.EventController.class,
+        com.vks.interfaces.eventcatalog.controller.CustomerEventController.class,
         com.vks.interfaces.slot.controller.SlotController.class,
         com.vks.interfaces.bookings.controller.BookingController.class
 }, properties = {
@@ -79,10 +83,11 @@ class ProtectedApiControllerTest {
                 UUID.randomUUID(), "Tech Summit", "Conference", "Bangalore",
                 LocalDateTime.of(2025, 9, 1, 9, 0), LocalDateTime.of(2025, 9, 1, 18, 0),
                 "9876543210", LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
-        authenticate("valid-token", "9876543210");
         when(eventService.listEvents()).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/v1/events").header("Authorization", "Bearer valid-token"))
+        authenticate("customer-token", new AuthenticatedUser("42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
+
+        mockMvc.perform(get("/api/v1/customer/events").header("Authorization", "Bearer customer-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].eventName").value("Tech Summit"));
     }
@@ -93,11 +98,11 @@ class ProtectedApiControllerTest {
                 UUID.randomUUID(), "Tech Summit", "Conference", "Bangalore",
                 LocalDateTime.of(2025, 9, 1, 9, 0), LocalDateTime.of(2025, 9, 1, 18, 0),
                 "9876543210", LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
-        authenticate("valid-token", "9876543210");
-        when(eventService.createEvent(any(), eq("9876543210"))).thenReturn(response);
+        authenticate("admin-token", new AuthenticatedUser("1", "admin@example.com", "tenant-123", UserRole.TENANT_ADMIN, UserRole.TENANT_ADMIN.defaultScopes()));
+        when(eventService.createEvent(any())).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/events")
-                        .header("Authorization", "Bearer valid-token")
+        mockMvc.perform(post("/api/v1/tenant-admin/events")
+                        .header("Authorization", "Bearer admin-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"eventName\":\"Tech Summit\",\"description\":\"Conference\",\"location\":\"Bangalore\"}"))
                 .andExpect(status().isCreated())
@@ -109,14 +114,14 @@ class ProtectedApiControllerTest {
         UUID eventId = UUID.randomUUID();
         SlotResponse response = new SlotResponse(
                 UUID.randomUUID(), eventId, LocalDate.of(2025, 9, 1), LocalTime.of(9, 0), LocalTime.of(10, 30),
-                new BigDecimal("499.00"), LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
-        authenticate("valid-token", "9876543210");
+                new BigDecimal("499.00"), 5, LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
+        authenticate("admin-token", new AuthenticatedUser("1", "admin@example.com", "tenant-123", UserRole.TENANT_ADMIN, UserRole.TENANT_ADMIN.defaultScopes()));
         when(slotService.createSlot(eq(eventId), any())).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/events/{eventId}/slots", eventId)
-                        .header("Authorization", "Bearer valid-token")
+        mockMvc.perform(post("/api/v1/tenant-admin/events/{eventId}/slots", eventId)
+                        .header("Authorization", "Bearer admin-token")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"slotDate\":\"2025-09-01\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"price\":499.00}"))
+                        .content("{\"slotDate\":\"2025-09-01\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"price\":499.00,\"capacity\":5}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.price").value(499.0));
     }
@@ -126,17 +131,23 @@ class ProtectedApiControllerTest {
         UUID eventId = UUID.randomUUID();
         UUID slotId = UUID.randomUUID();
         BookingResponse response = new BookingResponse(
-                UUID.randomUUID(), eventId, slotId, "9876543210",
+                UUID.randomUUID(), eventId, slotId, "42",
                 LocalDate.of(2025, 9, 1), LocalTime.of(9, 0), LocalTime.of(10, 30),
-                new BigDecimal("499.00"), BookingStatus.CONFIRMED,
+                new BigDecimal("499.00"), BookingStatus.PAYMENT_PENDING, LocalDateTime.of(2025, 7, 1, 10, 15),
                 LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
-        authenticate("valid-token", "9876543210");
-        when(bookingService.createBooking(eventId, slotId)).thenReturn(response);
+        BookingRequest request = new BookingRequest();
+        request.setEventId(eventId);
+        request.setSlotId(slotId);
+        request.setIdempotencyKey("key-1");
+        authenticate("customer-token", new AuthenticatedUser("42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
+        when(bookingService.createBooking(any())).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/events/{eventId}/slots/{slotId}/bookings", eventId, slotId)
-                        .header("Authorization", "Bearer valid-token"))
+        mockMvc.perform(post("/api/v1/customer/bookings")
+                        .header("Authorization", "Bearer customer-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+                .andExpect(jsonPath("$.status").value("PAYMENT_PENDING"));
     }
 
     @Test
@@ -145,13 +156,13 @@ class ProtectedApiControllerTest {
         BookingResponse response = new BookingResponse(
                 bookingId, UUID.randomUUID(), UUID.randomUUID(), "9876543210",
                 LocalDate.of(2025, 9, 1), LocalTime.of(9, 0), LocalTime.of(10, 30),
-                new BigDecimal("499.00"), BookingStatus.CANCELLED,
+                new BigDecimal("499.00"), BookingStatus.CANCELLED, null,
                 LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 11, 0));
-        authenticate("valid-token", "9876543210");
+        authenticate("customer-token", new AuthenticatedUser("42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
         when(bookingService.cancelBooking(bookingId)).thenReturn(response);
 
-        mockMvc.perform(patch("/api/v1/bookings/{bookingId}/cancel", bookingId)
-                        .header("Authorization", "Bearer valid-token"))
+        mockMvc.perform(patch("/api/v1/customer/bookings/{bookingId}/cancel", bookingId)
+                        .header("Authorization", "Bearer customer-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
@@ -160,17 +171,18 @@ class ProtectedApiControllerTest {
     void deleteSlotReturnsNoContentWithToken() throws Exception {
         UUID eventId = UUID.randomUUID();
         UUID slotId = UUID.randomUUID();
-        authenticate("valid-token", "9876543210");
+        authenticate("admin-token", new AuthenticatedUser("1", "admin@example.com", "tenant-123", UserRole.TENANT_ADMIN, UserRole.TENANT_ADMIN.defaultScopes()));
 
-        mockMvc.perform(delete("/api/v1/events/{eventId}/slots/{slotId}", eventId, slotId)
-                        .header("Authorization", "Bearer valid-token"))
+        mockMvc.perform(delete("/api/v1/tenant-admin/events/{eventId}/slots/{slotId}", eventId, slotId)
+                        .header("Authorization", "Bearer admin-token"))
                 .andExpect(status().isNoContent());
 
         verify(slotService).deleteSlot(eventId, slotId);
     }
 
-    private void authenticate(String token, String subject) {
+        private void authenticate(String token, AuthenticatedUser user) {
         when(jwtUtil.validateToken(token)).thenReturn(true);
-        when(jwtUtil.extractSubject(token)).thenReturn(subject);
+                when(jwtUtil.isAccessToken(token)).thenReturn(true);
+                when(jwtUtil.extractAuthenticatedUser(token)).thenReturn(user);
     }
 }

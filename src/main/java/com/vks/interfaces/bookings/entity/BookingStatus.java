@@ -1,6 +1,11 @@
 package com.vks.interfaces.bookings.entity;
 
 public enum BookingStatus {
+    DRAFT,
+    PAYMENT_PENDING,
     CONFIRMED,
-    CANCELLED
+    CANCELLED,
+    FAILED,
+    EXPIRED,
+    REFUNDED
 }
