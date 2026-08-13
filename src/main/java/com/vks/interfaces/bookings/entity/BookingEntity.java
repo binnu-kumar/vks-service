@@ -31,6 +31,9 @@ public class BookingEntity {
     @Column(name = "idempotency_key", nullable = false)
     private String idempotencyKey;
 
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
     @Column(name = "price_at_booking", nullable = false, precision = 10, scale = 2)
     private BigDecimal priceAtBooking;
 

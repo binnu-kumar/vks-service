@@ -12,5 +12,9 @@ public interface BookingService {
 
     List<BookingResponse> listMyBookings();
 
+    BookingResponse getBooking(UUID bookingId);
+
     BookingResponse cancelBooking(UUID bookingId);
+
+    BookingResponse confirmBooking(UUID bookingId);
 }

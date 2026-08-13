@@ -1,6 +1,7 @@
 package com.vks.interfaces.bookings.service;
 
-import com.vks.common.EmailService;
+import com.vks.interfaces.bookings.events.BookingEvent;
+import com.vks.interfaces.bookings.events.BookingEventPublisher;
 import com.vks.common.exception.ConflictException;
 import com.vks.common.exception.ResourceNotFoundException;
 import com.vks.interfaces.bookings.entity.BookingEntity;
@@ -9,8 +10,6 @@ import com.vks.interfaces.bookings.model.BookingRequest;
 import com.vks.interfaces.bookings.model.BookingResponse;
 import com.vks.interfaces.bookings.repository.BookingRepository;
 import com.vks.interfaces.eventcatalog.repository.EventRepository;
-import com.vks.interfaces.signup.entity.SignupEntity;
-import com.vks.interfaces.signup.repository.SignupRepository;
 import com.vks.interfaces.slot.entity.SlotEntity;
 import com.vks.interfaces.slot.repository.SlotRepository;
 import com.vks.security.AuthenticatedUser;
@@ -39,8 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final EventRepository eventRepository;
     private final SlotRepository slotRepository;
-    private final SignupRepository signupRepository;
-    private final EmailService emailService;
+    private final BookingEventPublisher bookingEventPublisher;
     private final SecurityContextService securityContextService;
 
     @Value("${booking.hold-duration-minutes:15}")
@@ -75,9 +73,10 @@ public class BookingServiceImpl implements BookingService {
                 request.getSlotId(), currentUser.tenantId(), ACTIVE_BOOKING_STATUSES)
             .stream()
             .filter(existing -> existing.getExpiresAt() == null || existing.getExpiresAt().isAfter(LocalDateTime.now()))
-            .count();
+            .mapToInt(existing -> existing.getQuantity() != null ? existing.getQuantity() : 1)
+            .sum();
 
-        if (activeBookingCount >= slot.getCapacity()) {
+        if (activeBookingCount + request.getQuantity() > slot.getCapacity()) {
             throw new ConflictException("Slot capacity has been reached");
         }
 
@@ -86,12 +85,13 @@ public class BookingServiceImpl implements BookingService {
         booking.setBookedBy(currentUser.username());
         booking.setTenantId(currentUser.tenantId());
         booking.setIdempotencyKey(request.getIdempotencyKey());
+        booking.setQuantity(request.getQuantity());
         booking.setPriceAtBooking(slot.getPrice());
         booking.setStatus(BookingStatus.PAYMENT_PENDING);
         booking.setExpiresAt(LocalDateTime.now().plusMinutes(holdDurationMinutes));
 
         BookingEntity savedBooking = bookingRepository.save(booking);
-        notifyBookingPending(savedBooking);
+        publishBookingEvent(savedBooking, "BOOKING_CREATED");
         return toResponse(savedBooking);
     }
 
@@ -103,6 +103,35 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    public BookingResponse getBooking(UUID bookingId) {
+        AuthenticatedUser currentUser = securityContextService.currentUser();
+        log.info("Fetching booking id: {} for user: {}", bookingId, currentUser.userId());
+        BookingEntity booking = bookingRepository.findByBookingIdAndBookedByAndTenantId(
+                bookingId, currentUser.userId(), currentUser.tenantId())
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        return toResponse(booking);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse confirmBooking(UUID bookingId) {
+        log.info("Confirming booking id: {} (internal)", bookingId);
+        BookingEntity booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        if (booking.getStatus() == BookingStatus.CONFIRMED) {
+            return toResponse(booking);
+        }
+        if (booking.getStatus() != BookingStatus.PAYMENT_PENDING) {
+            throw new ConflictException("Booking cannot be confirmed from status: " + booking.getStatus());
+        }
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setExpiresAt(null);
+        BookingEntity saved = bookingRepository.save(booking);
+        publishBookingEvent(saved, "BOOKING_CONFIRMED");
+        return toResponse(saved);
     }
 
     @Override
@@ -122,7 +151,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setExpiresAt(null);
         BookingEntity savedBooking = bookingRepository.save(booking);
-        notifyBookingCancelled(savedBooking);
+        publishBookingEvent(savedBooking, "BOOKING_CANCELLED");
         return toResponse(savedBooking);
     }
 
@@ -138,6 +167,7 @@ public class BookingServiceImpl implements BookingService {
                 slot.getEvent().getEventId(),
                 slot.getSlotId(),
                 booking.getBookedBy(),
+                booking.getQuantity(),
                 slot.getSlotDate(),
                 slot.getStartTime(),
                 slot.getEndTime(),
@@ -161,25 +191,18 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void notifyBookingPending(BookingEntity booking) {
-        SignupEntity user = signupRepository.findById(Long.valueOf(booking.getBookedBy())).orElse(null);
-        if (user != null && user.getEmailid() != null) {
-            emailService.sendBookingPendingEmail(
-                    user.getEmailid(),
-                    booking.getBookingId().toString(),
-                    booking.getSlot().getEvent().getEventName()
-            );
-        }
-    }
-
-    private void notifyBookingCancelled(BookingEntity booking) {
-        SignupEntity user = signupRepository.findById(Long.valueOf(booking.getBookedBy())).orElse(null);
-        if (user != null && user.getEmailid() != null) {
-            emailService.sendBookingCancelledEmail(
-                    user.getEmailid(),
-                    booking.getBookingId().toString(),
-                    booking.getSlot().getEvent().getEventName()
-            );
-        }
+    private void publishBookingEvent(BookingEntity booking, String eventType) {
+        BookingEvent event = new BookingEvent();
+        event.setEventType(eventType);
+        event.setEventId(java.util.UUID.randomUUID());
+        event.setOccurredAt(java.time.Instant.now());
+        event.setTenantId(booking.getTenantId());
+        event.setBookingId(booking.getBookingId());
+        event.setCustomerId(booking.getBookedBy());
+        event.setSlotId(booking.getSlot().getSlotId());
+        event.setQuantity(booking.getQuantity());
+        event.setAmount(booking.getPriceAtBooking());
+        event.setStatus(booking.getStatus());
+        bookingEventPublisher.publish(event);
     }
 }

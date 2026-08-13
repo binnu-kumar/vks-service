@@ -64,6 +64,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_URLS).permitAll()
+                .requestMatchers(ApiEndpoints.BASE_INTERNAL + "/**").permitAll()
                 .requestMatchers(ApiEndpoints.BASE_TENANT_ADMIN + "/**").hasRole(UserRole.TENANT_ADMIN.name())
                 .requestMatchers(ApiEndpoints.BASE_CUSTOMER + "/**").hasRole(UserRole.CUSTOMER.name())
                 .anyRequest().authenticated()

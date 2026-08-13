@@ -37,6 +37,11 @@ public class EmailService {
                 "Your booking " + bookingId + " for " + eventName + " is reserved and currently awaiting payment confirmation.");
     }
 
+    public void sendBookingConfirmedEmail(String toEmail, String bookingId, String amount) {
+        sendEmail(toEmail, "Booking confirmed",
+                "Your booking " + bookingId + " has been confirmed. Amount paid: " + amount + ".");
+    }
+
     public void sendBookingCancelledEmail(String toEmail, String bookingId, String eventName) {
         sendEmail(toEmail, "Your booking has been cancelled",
                 "Your booking " + bookingId + " for " + eventName + " has been cancelled.");

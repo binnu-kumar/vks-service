@@ -20,6 +20,7 @@ public class BookingResponse {
     private UUID eventId;
     private UUID slotId;
     private String bookedBy;
+    private Integer quantity;
     private LocalDate slotDate;
     private LocalTime startTime;
     private LocalTime endTime;
