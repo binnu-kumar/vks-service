@@ -22,7 +22,6 @@ Scope:
 | vks-service | http://localhost:8099 | /vks-service |
 | payment-service | http://localhost:8086 | /payment-service |
 | notification-service | http://localhost:8087 | /notification-service |
-| customer-service | service local port | / |
 
 Config dependency:
 - all services are config clients using CONFIG_SERVER_URI (default http://localhost:8080)
@@ -188,17 +187,7 @@ Expected booking event payload fields:
 
 ---
 
-## 8. customer-service Contract
-
-| Method | Path | Auth | Success | Common Errors | Request Body | Response Body |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/customers | service-specific | 200 | 500 | none | list<Customer> |
-| GET | /api/v1/customers/{id} | service-specific | 200 | 404, 500 | none | Customer |
-| POST | /api/v1/customers | service-specific | 200 | 400, 500 | Customer | Customer |
-| PUT | /api/v1/customers/{id} | service-specific | 200 | 400, 404, 500 | Customer | Customer |
-| DELETE | /api/v1/customers/{id} | service-specific | 200 | 404, 500 | none | message string |
-
----
+## 8. 
 
 ## 9. Canonical Payload Schemas
 

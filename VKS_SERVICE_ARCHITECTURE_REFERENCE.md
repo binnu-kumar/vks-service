@@ -66,7 +66,7 @@ For now, `vks-service` should be treated as an implementation step toward the do
 ### Domain services expected in target architecture
 
 1. Identity Service
-2. Customer Service
+2. 
 3. Event Catalog Service
 4. Slot Inventory Service
 5. Booking Service

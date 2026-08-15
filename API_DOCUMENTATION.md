@@ -23,7 +23,6 @@ It covers:
 | vks-service | 8099 | /vks-service | identity + profile + event catalog + slot + booking core domain |
 | payment-service | 8086 | /payment-service | payment order, payment confirm, webhook reconcile |
 | notification-service | 8087 | /notification-service | Kafka booking-event consumer (notification dispatch) |
-| customer-service | configured separately | (default root) | customer CRUD microservice |
 
 ### 1.2 Config Server Connectivity
 
@@ -808,36 +807,7 @@ Consumer logic by status:
 
 ---
 
-## 9. API Catalog - customer-service
-
-This service is currently independent of BFF flow in this codebase and exposes direct CRUD APIs.
-
-Base path:
-- /api/v1/customers
-
-Endpoints:
-- GET /api/v1/customers
-- GET /api/v1/customers/{id}
-- POST /api/v1/customers
-- PUT /api/v1/customers/{id}
-- DELETE /api/v1/customers/{id}
-
-Customer payload:
-```json
-{
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com",
-  "address": "HSR Layout, Bengaluru"
-}
-```
-
-Validation:
-- name required, max 100
-- email required, valid format
-- address required, max 250
-
----
+## 9. 
 
 ## 10. Request and Response Models (Canonical)
 
@@ -1051,7 +1021,6 @@ Not found examples:
 Global exception handlers exist in:
 - vks-service
 - payment-service
-- customer-service
 - notification-service
 - admin-bff
 - customer-bff
