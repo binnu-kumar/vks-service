@@ -3,125 +3,18 @@ spring:
     name: vks-service
   config:
     import:
-      - "configserver:"
+      - "optional:configserver:"
   cloud:
     config:
-      uri: http://localhost:8080/config-service
+      uri: ${CONFIG_SERVER_URI:http://localhost:8080}
+      fail-fast: true
+      retry:
+        max-attempts: 5
+        initial-interval: 1000
   profiles:
-    active: local
-  datasource:
-    url: jdbc:postgresql://localhost:5432/vks?currentSchema=login
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:123Abc***}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-  jackson:
-    default-property-inclusion: non_null
-    deserialization:
-      fail-on-unknown-properties: true
-      fail-on-invalid-subtype: true
-    mapper:
-      accept-case-insensitive-enums: false
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:your-email@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-  servlet:
-    multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
-
-kafka:
-  topic:
-    notification: notification-topic
-
-server:
-  port: 8099
-  servlet:
-    context-path: /vks-service
-  tomcat:
-    connection-timeout: 5000
+    active: ${SPRING_PROFILES_ACTIVE:local}
 
 spring.main.lazy-initialization: false
 
-# Logging Configuration
 logging:
   config: classpath:logback-spring.xml
-  level:
-    org.springframework.security: DEBUG
-    com.vks: DEBUG
-
-# JSON Logging Configuration
-json:
-  logging:
-    beautify: true
-
-# Actuator Configuration (Static)
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus,loggers
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-  tracing:
-    sampling:
-      probability: 1.0
-    propagation:
-      consume: B3,W3C
-      produce: B3,W3C
-
-# Micrometer Tracing Configuration (Static)
-micrometer:
-  tracing:
-    mdc-context-propagation:
-      enabled: true
-
-# OpenAPI/Swagger Configuration (Static)
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    operationsSorter: method
-    tagsSorter: alpha
-  show-actuator: false
-
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET:vks-super-secret-key-must-be-at-least-32-chars}
-  expiration-ms: ${JWT_EXPIRATION_MS:900000}
-  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
-
-# =============================================
-# OWASP Security Configuration
-# =_===========================================
-security:
-  cors:
-    # Default allows all origins for development
-    # Override in environment config for production:
-    # Example: SECURITY_CORS_ALLOWED_ORIGINS=https://app.example.com,https://mobile.example.com
-    allowed-origins: ${SECURITY_CORS_ALLOWED_ORIGINS:*}
-  rate-limiting:
-    enabled: ${RATE_LIMITING_ENABLED:false}
-    # Default limits (requests per minute)
-    auth-limit: 5
-    otp-limit: 3
-    general-limit: 100

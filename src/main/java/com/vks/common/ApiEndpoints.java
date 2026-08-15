@@ -24,7 +24,13 @@ public final class ApiEndpoints {
     public static final String SLOTS_BY_ID = "/events/{eventId}/slots/{slotId}";
     public static final String BOOKINGS = "/bookings";
     public static final String MY_BOOKINGS = "/bookings";
+    public static final String BOOKING_BY_ID = "/bookings/{bookingId}";
     public static final String BOOKINGS_CANCEL = "/bookings/{bookingId}/cancel";
+    public static final String CUSTOMER_PROFILE = "/profile";
+
+    // Internal — called by payment-service
+    public static final String BASE_INTERNAL = "/api/v1/internal";
+    public static final String BOOKING_CONFIRM_INTERNAL = "/bookings/{bookingId}/confirm";
 
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
     public static final String ADMIN_SIGNUP_FULL = BASE_AUTH + ADMIN_SIGNUP;

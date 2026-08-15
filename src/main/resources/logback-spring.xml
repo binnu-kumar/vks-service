@@ -7,7 +7,7 @@
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>[Service: ${serviceName} TraceId: %X{traceId:-} SpanId: %X{spanId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %msg%n</pattern>
+            <pattern>[Service: ${serviceName} CorrelationId: %X{correlationId:-} TraceId: %X{traceId:-} SpanId: %X{spanId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -20,7 +20,7 @@
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>[Service: ${serviceName} TraceId: %X{traceId:-} SpanId: %X{spanId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %msg%n</pattern>
+            <pattern>[Service: ${serviceName} CorrelationId: %X{correlationId:-} TraceId: %X{traceId:-} SpanId: %X{spanId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>

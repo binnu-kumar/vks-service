@@ -36,6 +36,11 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.listMyBookings());
     }
 
+    @GetMapping(ApiEndpoints.BOOKING_BY_ID)
+    public ResponseEntity<BookingResponse> getBooking(@PathVariable UUID bookingId) {
+        return ResponseEntity.ok(bookingService.getBooking(bookingId));
+    }
+
     @PatchMapping(ApiEndpoints.BOOKINGS_CANCEL)
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable UUID bookingId) {
         return ResponseEntity.ok(bookingService.cancelBooking(bookingId));
