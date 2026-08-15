@@ -75,7 +75,7 @@ class BookingServiceImplTest {
         BookingEntity persisted = captor.getValue();
 
         assertEquals(slot, persisted.getSlot());
-        assertEquals(CURRENT_USER.userId(), persisted.getBookedBy());
+        assertEquals(CURRENT_USER.username(), persisted.getBookedBy());
         assertEquals(CURRENT_USER.tenantId(), persisted.getTenantId());
         assertEquals(slot.getPrice(), persisted.getPriceAtBooking());
         assertEquals(BookingStatus.PAYMENT_PENDING, persisted.getStatus());

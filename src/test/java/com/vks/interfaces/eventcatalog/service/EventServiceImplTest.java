@@ -78,7 +78,7 @@ class EventServiceImplTest {
         ArgumentCaptor<EventEntity> captor = ArgumentCaptor.forClass(EventEntity.class);
         verify(eventRepository).save(captor.capture());
         EventEntity persisted = captor.getValue();
-        assertEquals(CURRENT_USER.userId(), persisted.getCreatedBy());
+        assertEquals(CURRENT_USER.username(), persisted.getCreatedBy());
         assertEquals(CURRENT_USER.tenantId(), persisted.getTenantId());
         assertEquals(request.getEventName(), persisted.getEventName());
         assertEquals(saved.getEventId(), response.getEventId());

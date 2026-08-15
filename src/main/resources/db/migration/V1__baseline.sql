@@ -1,0 +1,3 @@
+-- Baseline migration for vks-service.
+-- Existing schemas are currently managed by JPA (ddl-auto=update).
+-- Add explicit DDL changes in subsequent versioned migrations.

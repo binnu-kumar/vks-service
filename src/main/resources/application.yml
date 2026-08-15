@@ -3,7 +3,7 @@ spring:
     name: vks-service
   config:
     import:
-      - "configserver:"
+      - "optional:configserver:"
   cloud:
     config:
       uri: ${CONFIG_SERVER_URI:http://localhost:8080}

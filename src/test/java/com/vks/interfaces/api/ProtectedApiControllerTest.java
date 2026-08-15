@@ -132,12 +132,14 @@ class ProtectedApiControllerTest {
         UUID slotId = UUID.randomUUID();
         BookingResponse response = new BookingResponse(
                 UUID.randomUUID(), eventId, slotId, "42",
+                1,
                 LocalDate.of(2025, 9, 1), LocalTime.of(9, 0), LocalTime.of(10, 30),
                 new BigDecimal("499.00"), BookingStatus.PAYMENT_PENDING, LocalDateTime.of(2025, 7, 1, 10, 15),
                 LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 10, 0));
         BookingRequest request = new BookingRequest();
         request.setEventId(eventId);
         request.setSlotId(slotId);
+        request.setQuantity(1);
         request.setIdempotencyKey("key-1");
         authenticate("customer-token", new AuthenticatedUser("42", "9876543210", "tenant-123", UserRole.CUSTOMER, UserRole.CUSTOMER.defaultScopes()));
         when(bookingService.createBooking(any())).thenReturn(response);
@@ -155,6 +157,7 @@ class ProtectedApiControllerTest {
         UUID bookingId = UUID.randomUUID();
         BookingResponse response = new BookingResponse(
                 bookingId, UUID.randomUUID(), UUID.randomUUID(), "9876543210",
+                1,
                 LocalDate.of(2025, 9, 1), LocalTime.of(9, 0), LocalTime.of(10, 30),
                 new BigDecimal("499.00"), BookingStatus.CANCELLED, null,
                 LocalDateTime.of(2025, 7, 1, 10, 0), LocalDateTime.of(2025, 7, 1, 11, 0));

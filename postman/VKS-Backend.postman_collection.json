@@ -1,0 +1,754 @@
+{
+  "info": {
+    "_postman_id": "6a0cbf4e-5d22-4f30-94ad-c93a8e663111",
+    "name": "VKS Backend Unified Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Unified backend collection for admin-bff, customer-bff, vks-service, payment-service, notification-service, and customer-service."
+  },
+  "variable": [
+    { "key": "config_server_base", "value": "http://localhost:8080" },
+    { "key": "vks_base", "value": "http://localhost:8099/vks-service" },
+    { "key": "admin_bff_base", "value": "http://localhost:8088" },
+    { "key": "customer_bff_base", "value": "http://localhost:8089" },
+    { "key": "payment_base", "value": "http://localhost:8086/payment-service" },
+    { "key": "notification_base", "value": "http://localhost:8087/notification-service" },
+    { "key": "customer_service_base", "value": "http://localhost:8091" },
+    { "key": "admin_token", "value": "" },
+    { "key": "customer_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "tenant_id", "value": "tenant-123" },
+    { "key": "event_id", "value": "f4b0ea7b-9a3f-41db-aa8d-8be6769f140b" },
+    { "key": "slot_id", "value": "a6d6fca7-c5ab-41b6-ba58-62fc89e503d5" },
+    { "key": "booking_id", "value": "b2db5b07-58fb-4171-9b21-cd2a7fc3f74c" },
+    { "key": "payment_order_id", "value": "order_A1B2C3D4E5F6G7H8" }
+  ],
+  "item": [
+    {
+      "name": "00 Health and Infra",
+      "item": [
+        {
+          "name": "Config Server Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{config_server_base}}/actuator/health",
+              "host": ["{{config_server_base}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "vks-service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{vks_base}}/actuator/health",
+              "host": ["{{vks_base}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "payment-service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{payment_base}}/actuator/health",
+              "host": ["{{payment_base}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "notification-service Ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notification_base}}/internal/ping",
+              "host": ["{{notification_base}}"],
+              "path": ["internal", "ping"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 vks-service Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobileno\": \"9876543210\",\n  \"emailid\": \"john@example.com\",\n  \"tenantId\": \"{{tenant_id}}\",\n  \"password\": \"Pass@1234\",\n  \"confirmPassword\": \"Pass@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/signup",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Tenant Admin Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Admin\",\n  \"lastname\": \"User\",\n  \"mobileno\": \"9999999999\",\n  \"emailid\": \"admin@example.com\",\n  \"tenantId\": \"{{tenant_id}}\",\n  \"password\": \"Pass@1234\",\n  \"confirmPassword\": \"Pass@1234\",\n  \"onboardingSecret\": \"admin-bootstrap-secret\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/tenant-admin/signup",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "tenant-admin", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"9876543210\",\n  \"password\": \"Pass@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/login",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/refresh",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/forgot-password",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"9876543210\",\n  \"otp\": \"482910\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/verify-otp",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password With Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resetToken\": \"<reset-token>\",\n  \"newPassword\": \"NewPass@5678\",\n  \"confirmPassword\": \"NewPass@5678\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/reset-password-with-token",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "reset-password-with-token"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewPass@5678\",\n  \"confirmPassword\": \"NewPass@5678\"\n}"
+            },
+            "url": {
+              "raw": "{{vks_base}}/api/v1/auth/reset-password",
+              "host": ["{{vks_base}}"],
+              "path": ["api", "v1", "auth", "reset-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Admin BFF",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/dashboard",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events"]
+            }
+          }
+        },
+        {
+          "name": "Search Events",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventName\": \"Tech\",\n  \"location\": \"Bengaluru\"\n}"
+            },
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/search",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "search"]
+            }
+          }
+        },
+        {
+          "name": "Get Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventName\": \"Tech Summit\",\n  \"description\": \"Annual conference\",\n  \"location\": \"Bengaluru\",\n  \"startDate\": \"2026-09-01T10:00:00\",\n  \"endDate\": \"2026-09-01T18:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events"]
+            }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventName\": \"Tech Summit Updated\",\n  \"description\": \"Updated\",\n  \"location\": \"Bengaluru\",\n  \"startDate\": \"2026-09-01T10:00:00\",\n  \"endDate\": \"2026-09-01T18:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "List Slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}/slots",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}", "slots"]
+            }
+          }
+        },
+        {
+          "name": "Create Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotDate\": \"2026-09-01\",\n  \"startTime\": \"10:00:00\",\n  \"endTime\": \"11:00:00\",\n  \"price\": 499.00,\n  \"capacity\": 100\n}"
+            },
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}/slots",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}", "slots"]
+            }
+          }
+        },
+        {
+          "name": "Update Slot",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotDate\": \"2026-09-01\",\n  \"startTime\": \"11:00:00\",\n  \"endTime\": \"12:00:00\",\n  \"price\": 599.00,\n  \"capacity\": 120\n}"
+            },
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}/slots/{{slot_id}}",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}", "slots", "{{slot_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Slot",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{admin_bff_base}}/bff/admin/events/{{event_id}}/slots/{{slot_id}}",
+              "host": ["{{admin_bff_base}}"],
+              "path": ["bff", "admin", "events", "{{event_id}}", "slots", "{{slot_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Customer BFF",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/profile",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "profile"]
+            }
+          }
+        },
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/events",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "events"]
+            }
+          }
+        },
+        {
+          "name": "Get Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/events/{{event_id}}",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "events", "{{event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/events/{{event_id}}/slots",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "events", "{{event_id}}", "slots"]
+            }
+          }
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{event_id}}\",\n  \"slotId\": \"{{slot_id}}\",\n  \"quantity\": 2,\n  \"idempotencyKey\": \"booking-req-20260815-001\"\n}"
+            },
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/bookings",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/bookings",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/bookings/{{booking_id}}",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "bookings", "{{booking_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/bookings/{{booking_id}}/cancel",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "bookings", "{{booking_id}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Get Confirmation",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/confirmation/{{booking_id}}",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "confirmation", "{{booking_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Payment Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{booking_id}}\",\n  \"amount\": 998.00,\n  \"idempotencyKey\": \"payment-req-20260815-001\"\n}"
+            },
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/payment/orders",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "payment", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentOrderId\": \"{{payment_order_id}}\",\n  \"gatewayPaymentId\": \"pay_Q1W2E3R4T5\",\n  \"signature\": \"signed_payload\"\n}"
+            },
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/payment/confirm",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "payment", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{customer_bff_base}}/bff/customer/payment/{{payment_order_id}}",
+              "host": ["{{customer_bff_base}}"],
+              "path": ["bff", "customer", "payment", "{{payment_order_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Direct payment-service",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{booking_id}}\",\n  \"amount\": 998.00,\n  \"idempotencyKey\": \"payment-req-direct-001\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_base}}/payments/orders",
+              "host": ["{{payment_base}}"],
+              "path": ["payments", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentOrderId\": \"{{payment_order_id}}\",\n  \"gatewayPaymentId\": \"pay_Q1W2E3R4T5\",\n  \"signature\": \"signed_payload\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_base}}/payments/confirm",
+              "host": ["{{payment_base}}"],
+              "path": ["payments", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentOrderId\": \"{{payment_order_id}}\",\n  \"gatewayPaymentId\": \"pay_Q1W2E3R4T5\",\n  \"signature\": \"signed_payload\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_base}}/payments/webhook",
+              "host": ["{{payment_base}}"],
+              "path": ["payments", "webhook"]
+            }
+          }
+        },
+        {
+          "name": "Get By Order Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+            ],
+            "url": {
+              "raw": "{{payment_base}}/payments/{{payment_order_id}}",
+              "host": ["{{payment_base}}"],
+              "path": ["payments", "{{payment_order_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Direct customer-service",
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{customer_service_base}}/api/v1/customers",
+              "host": ["{{customer_service_base}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Get Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{customer_service_base}}/api/v1/customers/1",
+              "host": ["{{customer_service_base}}"],
+              "path": ["api", "v1", "customers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"address\": \"HSR Layout, Bengaluru\"\n}"
+            },
+            "url": {
+              "raw": "{{customer_service_base}}/api/v1/customers",
+              "host": ["{{customer_service_base}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Updated\",\n  \"email\": \"alice.updated@example.com\",\n  \"address\": \"Koramangala, Bengaluru\"\n}"
+            },
+            "url": {
+              "raw": "{{customer_service_base}}/api/v1/customers/1",
+              "host": ["{{customer_service_base}}"],
+              "path": ["api", "v1", "customers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{customer_service_base}}/api/v1/customers/1",
+              "host": ["{{customer_service_base}}"],
+              "path": ["api", "v1", "customers", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
