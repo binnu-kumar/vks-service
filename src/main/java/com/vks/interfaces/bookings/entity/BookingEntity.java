@@ -10,7 +10,9 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "bookings")
+@Table(name = "bookings", uniqueConstraints = @UniqueConstraint(
+        name = "uk_bookings_tenant_customer_idempotency",
+        columnNames = {"tenant_id", "booked_by", "idempotency_key"}))
 public class BookingEntity {
 
     @Id

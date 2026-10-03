@@ -8,10 +8,12 @@ import com.vks.interfaces.bookings.entity.BookingEntity;
 import com.vks.interfaces.bookings.entity.BookingStatus;
 import com.vks.interfaces.bookings.model.BookingRequest;
 import com.vks.interfaces.bookings.model.BookingResponse;
+import com.vks.interfaces.bookings.model.BookingPaymentDetails;
 import com.vks.interfaces.bookings.repository.BookingRepository;
 import com.vks.interfaces.eventcatalog.repository.EventRepository;
 import com.vks.interfaces.slot.entity.SlotEntity;
 import com.vks.interfaces.slot.repository.SlotRepository;
+import com.vks.interfaces.ticket.service.TicketService;
 import com.vks.security.AuthenticatedUser;
 import com.vks.security.SecurityContextService;
 import jakarta.transaction.Transactional;
@@ -40,6 +42,7 @@ public class BookingServiceImpl implements BookingService {
     private final SlotRepository slotRepository;
     private final BookingEventPublisher bookingEventPublisher;
     private final SecurityContextService securityContextService;
+    private final TicketService ticketService;
 
     @Value("${booking.hold-duration-minutes:15}")
     private long holdDurationMinutes;
@@ -57,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
                 });
 
         validateEvent(request.getEventId(), currentUser.tenantId());
-        SlotEntity slot = slotRepository.findBySlotIdAndEventEventIdAndEventTenantId(
+        SlotEntity slot = slotRepository.findForUpdateBySlotIdAndEventEventIdAndEventTenantId(
                         request.getSlotId(), request.getEventId(), currentUser.tenantId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Slot not found with id: " + request.getSlotId() + " for event id: " + request.getEventId()));
@@ -82,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingEntity booking = new BookingEntity();
         booking.setSlot(slot);
-        booking.setBookedBy(currentUser.username());
+        booking.setBookedBy(currentUser.userId());
         booking.setTenantId(currentUser.tenantId());
         booking.setIdempotencyKey(request.getIdempotencyKey());
         booking.setQuantity(request.getQuantity());
@@ -130,8 +133,19 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setExpiresAt(null);
         BookingEntity saved = bookingRepository.save(booking);
+        ticketService.createTickets(saved);
         publishBookingEvent(saved, "BOOKING_CONFIRMED");
         return toResponse(saved);
+    }
+
+    @Override
+    public BookingPaymentDetails getPaymentDetails(UUID bookingId) {
+        BookingEntity booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        return new BookingPaymentDetails(
+                booking.getBookingId(),
+                booking.getPriceAtBooking().multiply(java.math.BigDecimal.valueOf(booking.getQuantity())),
+                booking.getStatus());
     }
 
     @Override
@@ -147,10 +161,16 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             return toResponse(booking);
         }
+        if (booking.getStatus() != BookingStatus.DRAFT
+                && booking.getStatus() != BookingStatus.PAYMENT_PENDING
+                && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new ConflictException("Booking cannot be cancelled from status: " + booking.getStatus());
+        }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setExpiresAt(null);
         BookingEntity savedBooking = bookingRepository.save(booking);
+        ticketService.cancelTickets(savedBooking.getBookingId(), savedBooking.getTenantId());
         publishBookingEvent(savedBooking, "BOOKING_CANCELLED");
         return toResponse(savedBooking);
     }

@@ -20,6 +20,7 @@ public class BookingEvent {
     private String tenantId;
     private UUID bookingId;
     private String customerId;
+    private String customerEmail;
     private UUID slotId;
     private Integer quantity;
     private BigDecimal amount;

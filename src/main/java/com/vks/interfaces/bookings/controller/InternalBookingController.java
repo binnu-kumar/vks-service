@@ -1,6 +1,7 @@
 package com.vks.interfaces.bookings.controller;
 
 import com.vks.common.ApiEndpoints;
+import com.vks.interfaces.bookings.model.BookingPaymentDetails;
 import com.vks.interfaces.bookings.model.BookingResponse;
 import com.vks.interfaces.bookings.service.BookingService;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,10 @@ public class InternalBookingController {
     @PatchMapping(ApiEndpoints.BOOKING_CONFIRM_INTERNAL)
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable UUID bookingId) {
         return ResponseEntity.ok(bookingService.confirmBooking(bookingId));
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping(ApiEndpoints.BOOKING_PAYMENT_DETAILS_INTERNAL)
+    public ResponseEntity<BookingPaymentDetails> getPaymentDetails(@PathVariable UUID bookingId) {
+        return ResponseEntity.ok(bookingService.getPaymentDetails(bookingId));
     }
 }

@@ -27,6 +27,7 @@
         <springdoc.version>2.2.0</springdoc.version>
         <aws.sdk.version>2.20.0</aws.sdk.version>
         <byte-buddy.version>1.17.7</byte-buddy.version>
+        <zxing.version>3.5.3</zxing.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.exclusions>src/test/**</sonar.exclusions>
         <sonar.test.exclusions>src/test/**</sonar.test.exclusions>
@@ -158,12 +159,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20251224</version>
-        </dependency>
-
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>secretsmanager</artifactId>
         </dependency>
@@ -213,6 +208,16 @@
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>2.0.30</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
 
         <!-- CSV - Apache Commons CSV -->
