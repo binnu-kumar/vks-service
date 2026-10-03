@@ -72,13 +72,23 @@ class GoogleAuthServiceImplTest {
     }
 
     @Test
-    void customerWithoutInvitationIsRejected() {
+    void customerWithoutInvitationCanRegisterInTenant() {
         GoogleAuthRequest request = request("CUSTOMER");
-        GoogleIdentity identity = new GoogleIdentity("google-sub", "customer@example.com", "Google", "Customer");
+        request.setTenantId("tenant-1");
+        GoogleIdentity identity = new GoogleIdentity("google-sub-open", "customer@example.com", "Google", "Customer");
+        SignupEntity user = newUser(42L, "tenant-1", UserRole.CUSTOMER, identity.email());
         when(identityVerifier.verifyAuthorizationCode(request.getCode(), request.getRedirectUri())).thenReturn(identity);
         when(externalIdentityRepository.findByProviderAndSubject("google", identity.subject())).thenReturn(Optional.empty());
+        when(signupRepository.findByEmailidIgnoreCase(identity.email())).thenReturn(Optional.empty());
+        when(signupRepository.save(any(SignupEntity.class))).thenReturn(user);
+        when(externalIdentityRepository.save(any(ExternalIdentityEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(ConflictException.class, () -> googleAuthService.authenticate(request));
+        LoginResponse response = googleAuthService.authenticate(request);
+
+        assertEquals(true, response.isSuccess());
+        assertEquals(UserRole.CUSTOMER, response.getRole());
+        assertEquals("tenant-1", response.getTenantId());
     }
 
     @Test

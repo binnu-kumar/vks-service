@@ -66,8 +66,6 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             if (invitation.getRole() != requestedRole) {
                 throw new ConflictException("Invitation role does not match requested role");
             }
-        } else if (requestedRole == UserRole.CUSTOMER) {
-            throw new ConflictException("A valid tenant invitation is required");
         }
 
         String tenantId = invitation == null ? request.getTenantId() : invitation.getTenantId();
@@ -91,15 +89,10 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             return existing;
         }
 
-        SignupEntity user = new SignupEntity();
-        user.setFirstname(defaultName(identity.firstName(), identity.email()));
-        user.setLastname(defaultName(identity.lastName(), "User"));
-        user.setEmailid(identity.email());
-        user.setMobileno("google-" + UUID.randomUUID());
-        user.setPassword(argon2.hash(2, 65536, 1, UUID.randomUUID().toString().toCharArray()));
-        user.setTenantId(tenantId);
-        user.setRole(requestedRole);
-        return signupRepository.save(user);
+        if (requestedRole == UserRole.CUSTOMER) {
+            throw new ConflictException("GOOGLE_REGISTRATION_REQUIRED: No customer account exists for this Google account");
+        }
+        throw new ConflictException("A valid tenant invitation is required before creating a tenant-admin account");
     }
 
     private void linkIdentity(GoogleIdentity identity, SignupEntity user) {
