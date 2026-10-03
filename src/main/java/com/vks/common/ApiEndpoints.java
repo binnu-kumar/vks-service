@@ -9,6 +9,7 @@ public final class ApiEndpoints {
     public static final String BASE_CUSTOMER = "/api/v1/customer";
 
     public static final String SIGNUP = "/signup";
+    public static final String SIGNUP_OTP = "/signup-otp";
     public static final String ADMIN_SIGNUP = "/tenant-admin/signup";
     public static final String LOGIN = "/login";
     public static final String REFRESH = "/refresh";
@@ -41,6 +42,7 @@ public final class ApiEndpoints {
     public static final String BOOKING_PAYMENT_DETAILS_INTERNAL = "/bookings/{bookingId}/payment-details";
 
     public static final String SIGNUP_FULL = BASE_AUTH + SIGNUP;
+    public static final String SIGNUP_OTP_FULL = BASE_AUTH + SIGNUP_OTP;
     public static final String ADMIN_SIGNUP_FULL = BASE_AUTH + ADMIN_SIGNUP;
     public static final String LOGIN_FULL = BASE_AUTH + LOGIN;
     public static final String REFRESH_FULL = BASE_AUTH + REFRESH;

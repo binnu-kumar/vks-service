@@ -3,6 +3,8 @@ package com.vks.interfaces.login.service;
 import com.vks.interfaces.login.model.LoginRequest;
 import com.vks.interfaces.login.model.LoginResponse;
 import com.vks.interfaces.login.model.RefreshTokenRequest;
+import com.vks.interfaces.forgotpassword.entity.OtpEntity;
+import com.vks.interfaces.forgotpassword.repository.OtpRepository;
 import com.vks.interfaces.login.repository.LoginRepository;
 import com.vks.interfaces.signup.entity.SignupEntity;
 import com.vks.security.AuthenticatedUser;
@@ -22,6 +24,7 @@ import java.util.Optional;
 public class LoginServiceImpl implements LoginService {
 
     private final LoginRepository loginRepository;
+    private final OtpRepository otpRepository;
     private final JwtUtil jwtUtil;
 
     private final Argon2 argon2 = Argon2Factory.create();
@@ -59,6 +62,22 @@ public class LoginServiceImpl implements LoginService {
         log.info("Login successful for username: {}, id: {}", request.getUsername(), user.getId());
 
         return new LoginResponse(true, "Login successful", token, refreshToken, tenantId, role, role.defaultScopes());
+    }
+
+    @Override
+    public LoginResponse loginWithOtp(String mobile, String otp) {
+        OtpEntity entity = otpRepository.findTopByUsernameAndUsedFalseOrderByExpiryDesc(mobile).orElse(null);
+        if (entity == null || java.time.LocalDateTime.now().isAfter(entity.getExpiry()) || !entity.getOtp().equals(otp)) {
+            return new LoginResponse(false, "Invalid or expired OTP", null, null, null, null, null);
+        }
+        SignupEntity user = loginRepository.findByMobilenoOrEmailid(mobile).orElse(null);
+        if (user == null) return new LoginResponse(false, "No account exists for this mobile number", null, null, null, null, null);
+        entity.setUsed(true);
+        otpRepository.save(entity);
+        UserRole role = user.getRole() != null ? user.getRole() : UserRole.CUSTOMER;
+        String tenantId = user.getTenantId() != null ? user.getTenantId() : "default-tenant";
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(String.valueOf(user.getId()), mobile, tenantId, role, role.defaultScopes());
+        return new LoginResponse(true, "OTP login successful", jwtUtil.generateToken(authenticatedUser), jwtUtil.generateRefreshToken(authenticatedUser), tenantId, role, role.defaultScopes());
     }
 
     @Override

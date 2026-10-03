@@ -43,8 +43,11 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             ApiEndpoints.SIGNUP_FULL,
+            ApiEndpoints.SIGNUP_OTP_FULL,
             ApiEndpoints.ADMIN_SIGNUP_FULL,
             ApiEndpoints.LOGIN_FULL,
+            "/api/v1/auth/login-otp/request",
+            "/api/v1/auth/login-otp/verify",
             ApiEndpoints.REFRESH_FULL,
             ApiEndpoints.FORGOT_PASSWORD_FULL,
             ApiEndpoints.VERIFY_OTP_FULL,

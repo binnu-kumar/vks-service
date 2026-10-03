@@ -31,4 +31,8 @@ public class SignupRequest {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
+
+    private String mobileOtp;
+
+    private String googleRegistrationToken;
 }

@@ -48,10 +48,22 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         ExternalIdentityEntity linkedIdentity = externalIdentityRepository
                 .findByProviderAndSubject(GOOGLE_PROVIDER, identity.subject())
                 .orElse(null);
-        SignupEntity user = linkedIdentity == null
-                ? resolveOrCreateUser(identity, requestedRole, request)
-                : signupRepository.findById(linkedIdentity.getUserId())
+        SignupEntity user;
+        if (linkedIdentity == null) {
+            try {
+                user = resolveOrCreateUser(identity, requestedRole, request);
+            } catch (ConflictException exception) {
+                if (requestedRole == UserRole.CUSTOMER && exception.getMessage().startsWith("GOOGLE_REGISTRATION_REQUIRED")) {
+                    return new LoginResponse(false, "Google email verified. Mobile verification is required.", null, null,
+                            request.getTenantId(), requestedRole, requestedRole.defaultScopes(),
+                            jwtUtil.generateGoogleRegistrationToken(identity.subject(), identity.email(), request.getTenantId()));
+                }
+                throw exception;
+            }
+        } else {
+            user = signupRepository.findById(linkedIdentity.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Linked user account not found"));
+        }
 
         if (linkedIdentity == null) {
             linkIdentity(identity, user);
