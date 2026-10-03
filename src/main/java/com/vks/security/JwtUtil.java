@@ -38,6 +38,12 @@ public class JwtUtil {
         return buildToken(user, refreshExpirationMs, "refresh");
     }
 
+    public String generateGoogleRegistrationToken(String subject, String email, String tenantId) {
+        return Jwts.builder().subject(subject).claim("email", email).claim("tenant_id", tenantId)
+                .claim("type", "google-registration").issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationMs)).signWith(getSigningKey()).compact();
+    }
+
     public String generatePasswordResetToken(String subject) {
         return Jwts.builder()
                 .subject(subject)
@@ -60,6 +66,14 @@ public class JwtUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public boolean isGoogleRegistrationToken(String token) {
+        return "google-registration".equals(parseClaims(token).get("type", String.class));
+    }
+
+    public String extractClaim(String token, String claim) {
+        return parseClaims(token).get(claim, String.class);
     }
 
     public boolean isAccessToken(String token) {

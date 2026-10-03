@@ -9,4 +9,6 @@ public interface LoginService {
     LoginResponse login(LoginRequest request);
 
     LoginResponse refresh(RefreshTokenRequest request);
+
+    LoginResponse loginWithOtp(String mobile, String otp);
 }
