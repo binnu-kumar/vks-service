@@ -48,6 +48,7 @@ public final class ApiEndpoints {
     public static final String FORGOT_PASSWORD_FULL = BASE_AUTH + FORGOT_PASSWORD;
     public static final String VERIFY_OTP_FULL = BASE_AUTH + VERIFY_OTP;
     public static final String RESET_PASSWORD_WITH_TOKEN_FULL = BASE_AUTH + RESET_PASSWORD_WITH_TOKEN;
+    public static final String GOOGLE_CALLBACK_FULL = BASE_AUTH + "/google/callback";
 
     // Actuator
     public static final String ACTUATOR_HEALTH = "/actuator/health";

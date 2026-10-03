@@ -49,6 +49,7 @@ public class SecurityConfig {
             ApiEndpoints.FORGOT_PASSWORD_FULL,
             ApiEndpoints.VERIFY_OTP_FULL,
             ApiEndpoints.RESET_PASSWORD_WITH_TOKEN_FULL,
+            ApiEndpoints.GOOGLE_CALLBACK_FULL,
             ApiEndpoints.ACTUATOR_HEALTH,
             ApiEndpoints.ACTUATOR_INFO,
             ApiEndpoints.API_DOCS,
