@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Instant;
 import java.util.Map;
@@ -35,34 +36,44 @@ public class GoogleIdentityVerifierImpl implements GoogleIdentityVerifier {
             throw new ConflictException("Google OAuth is not configured");
         }
 
-        Map<?, ?> tokenResponse = webClientBuilder.build()
-                .post()
-                .uri("https://oauth2.googleapis.com/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("code", code)
-                        .with("client_id", clientId)
-                        .with("client_secret", clientSecret)
-                        .with("redirect_uri", redirectUri)
-                        .with("grant_type", "authorization_code"))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
-
-        if (tokenResponse == null || tokenResponse.get("id_token") == null) {
-            throw new ConflictException("Google authorization code could not be exchanged");
+        Map<?, ?> tokenResponse;
+        try {
+            tokenResponse = webClientBuilder.build()
+                    .post()
+                    .uri("https://oauth2.googleapis.com/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData("code", code)
+                            .with("client_id", clientId)
+                            .with("client_secret", clientSecret)
+                            .with("redirect_uri", redirectUri)
+                            .with("grant_type", "authorization_code"))
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+        } catch (WebClientResponseException exception) {
+            throw new IllegalArgumentException("Invalid Google authorization code");
         }
 
-        Map<?, ?> claims = webClientBuilder.build()
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("oauth2.googleapis.com")
-                        .path("/tokeninfo")
-                        .queryParam("id_token", tokenResponse.get("id_token"))
-                        .build())
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        if (tokenResponse == null || tokenResponse.get("id_token") == null) {
+            throw new IllegalArgumentException("Google authorization code could not be exchanged");
+        }
+
+        Map<?, ?> claims;
+        try {
+            claims = webClientBuilder.build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("https")
+                            .host("oauth2.googleapis.com")
+                            .path("/tokeninfo")
+                            .queryParam("id_token", tokenResponse.get("id_token"))
+                            .build())
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+        } catch (WebClientResponseException exception) {
+            throw new IllegalArgumentException("Invalid Google identity token");
+        }
 
         validateClaims(claims);
         return new GoogleIdentity(
