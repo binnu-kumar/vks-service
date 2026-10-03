@@ -784,6 +784,18 @@ Auth:
 Response 200:
 - PaymentResponse (tenant-validated)
 
+### 7.5 Refund APIs
+
+- `POST /payments/{paymentOrderId}/refund` refunds a successful payment.
+- `GET /payments/refunds` lists refund records for the authenticated tenant.
+
+The local mock gateway is configured in `payment-service` and can be selected with:
+
+```yaml
+payment:
+  gateway: mock
+```
+
 ---
 
 ## 8. API Catalog - notification-service

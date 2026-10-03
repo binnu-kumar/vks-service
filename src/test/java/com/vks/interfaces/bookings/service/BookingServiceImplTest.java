@@ -12,6 +12,7 @@ import com.vks.interfaces.eventcatalog.entity.EventEntity;
 import com.vks.interfaces.eventcatalog.repository.EventRepository;
 import com.vks.interfaces.slot.entity.SlotEntity;
 import com.vks.interfaces.slot.repository.SlotRepository;
+import com.vks.interfaces.ticket.service.TicketService;
 import com.vks.security.AuthenticatedUser;
 import com.vks.security.SecurityContextService;
 import com.vks.security.UserRole;
@@ -46,6 +47,7 @@ class BookingServiceImplTest {
     @Mock private SlotRepository slotRepository;
     @Mock private BookingEventPublisher bookingEventPublisher;
     @Mock private SecurityContextService securityContextService;
+    @Mock private TicketService ticketService;
 
     @InjectMocks private BookingServiceImpl bookingService;
 
@@ -62,7 +64,7 @@ class BookingServiceImplTest {
 
         when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
         when(eventRepository.findByEventIdAndTenantId(eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(event));
-        when(slotRepository.findBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
+        when(slotRepository.findForUpdateBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
         when(bookingRepository.findByTenantIdAndBookedByAndIdempotencyKey(any(), any(), any())).thenReturn(Optional.empty());
         when(bookingRepository.existsBySlotSlotIdAndBookedByAndTenantIdAndStatusIn(any(), any(), any(), any())).thenReturn(false);
         when(bookingRepository.findBySlotSlotIdAndTenantIdAndStatusIn(any(), any(), any())).thenReturn(List.of());
@@ -75,7 +77,7 @@ class BookingServiceImplTest {
         BookingEntity persisted = captor.getValue();
 
         assertEquals(slot, persisted.getSlot());
-        assertEquals(CURRENT_USER.username(), persisted.getBookedBy());
+        assertEquals(CURRENT_USER.userId(), persisted.getBookedBy());
         assertEquals(CURRENT_USER.tenantId(), persisted.getTenantId());
         assertEquals(slot.getPrice(), persisted.getPriceAtBooking());
         assertEquals(BookingStatus.PAYMENT_PENDING, persisted.getStatus());
@@ -99,7 +101,7 @@ class BookingServiceImplTest {
 
         when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
         when(eventRepository.findByEventIdAndTenantId(eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(event));
-        when(slotRepository.findBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
+        when(slotRepository.findForUpdateBySlotIdAndEventEventIdAndEventTenantId(slotId, eventId, CURRENT_USER.tenantId())).thenReturn(Optional.of(slot));
         when(bookingRepository.findByTenantIdAndBookedByAndIdempotencyKey(any(), any(), any())).thenReturn(Optional.empty());
         when(bookingRepository.existsBySlotSlotIdAndBookedByAndTenantIdAndStatusIn(any(), any(), any(), any())).thenReturn(false);
         when(bookingRepository.findBySlotSlotIdAndTenantIdAndStatusIn(any(), any(), any())).thenReturn(List.of(existing));
@@ -160,6 +162,24 @@ class BookingServiceImplTest {
 
         assertEquals(BookingStatus.CANCELLED, response.getStatus());
         verify(bookingEventPublisher).publish(any(BookingEvent.class));
+        verify(ticketService).cancelTickets(bookingId, CURRENT_USER.tenantId());
+    }
+
+    @Test
+    void cancelBooking_rejectsExpiredBooking() {
+        UUID bookingId = UUID.randomUUID();
+        EventEntity event = createEvent(UUID.randomUUID());
+        SlotEntity slot = createSlot(event, UUID.randomUUID());
+        BookingEntity booking = createBooking(slot, BookingStatus.EXPIRED, 1);
+        booking.setBookingId(bookingId);
+
+        when(securityContextService.currentUser()).thenReturn(CURRENT_USER);
+        when(bookingRepository.findByBookingIdAndBookedByAndTenantId(bookingId, CURRENT_USER.userId(), CURRENT_USER.tenantId()))
+                .thenReturn(Optional.of(booking));
+
+        assertThrows(ConflictException.class, () -> bookingService.cancelBooking(bookingId));
+        verify(bookingRepository, never()).save(any());
+        verify(bookingEventPublisher, never()).publish(any());
     }
 
     @Test

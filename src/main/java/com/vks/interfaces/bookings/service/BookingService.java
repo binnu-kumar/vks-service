@@ -2,6 +2,7 @@ package com.vks.interfaces.bookings.service;
 
 import com.vks.interfaces.bookings.model.BookingRequest;
 import com.vks.interfaces.bookings.model.BookingResponse;
+import com.vks.interfaces.bookings.model.BookingPaymentDetails;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,4 +18,6 @@ public interface BookingService {
     BookingResponse cancelBooking(UUID bookingId);
 
     BookingResponse confirmBooking(UUID bookingId);
+
+    BookingPaymentDetails getPaymentDetails(UUID bookingId);
 }
